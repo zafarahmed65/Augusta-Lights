@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { SiteNav } from '../components/SiteNav';
 import { TryIt } from '../components/TryIt';
+import { VisitPing } from '../components/VisitPing';
 
 export const metadata: Metadata = {
   title: 'Try your own photo — Augusta Lights Visualizer',
@@ -19,6 +20,7 @@ export const metadata: Metadata = {
 export default function TryPage() {
   return (
     <>
+      <VisitPing page="try your photo" />
       <SiteNav back={{ href: '/', label: 'Case study' }} />
 
       <main className="mx-auto w-full max-w-[1120px] px-5 pb-20">

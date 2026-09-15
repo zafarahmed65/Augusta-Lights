@@ -4,6 +4,7 @@ import { Frame } from './components/Frame';
 import { PreservationBadge } from './components/PreservationBadge';
 import { Section } from './components/Section';
 import { SiteNav, type NavItem } from './components/SiteNav';
+import { VisitPing } from './components/VisitPing';
 import { VariantPicker } from './components/VariantPicker';
 import { BriefChecklist } from './components/BriefChecklist';
 import { SpecRow } from './components/SpecRow';
@@ -46,6 +47,7 @@ export default function Gallery() {
 
   return (
     <>
+      <VisitPing page="case study" />
       <SiteNav items={NAV} cta={{ href: '/try', label: 'Try your photo' }} />
 
       <main id="top" className="mx-auto w-full max-w-[1120px] px-5 pb-20">

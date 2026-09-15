@@ -4,6 +4,7 @@ import { applyLighting } from '@/lib/ai/light';
 import { reconcileLighting } from '@/lib/image/reconcile';
 import { composeHero } from '@/lib/image/compose';
 import { getDesign } from '@/lib/designs';
+import { notifyRender, visitorFrom } from '@/lib/notify';
 
 export const maxDuration = 300;
 export const dynamic = 'force-dynamic';
@@ -59,6 +60,7 @@ export async function POST(req: Request) {
   }
 
   const designId = String(form.get('designId') ?? 'warm-white');
+  const visitor = visitorFrom(req, 'try your photo');
   const lastName = String(form.get('lastName') ?? '').slice(0, 40);
 
   const encoder = new TextEncoder();
@@ -117,6 +119,8 @@ export async function POST(req: Request) {
           targetWidth: 1600,
         });
 
+        void notifyRender(visitor, design.label, true);
+
         const jpeg = (b: Buffer) => `data:image/jpeg;base64,${b.toString('base64')}`;
         send({
           done: true,
@@ -133,6 +137,7 @@ export async function POST(req: Request) {
         const friendly = /answered in text instead of returning an image/.test(raw)
           ? 'The model described the edit instead of producing it — an intermittent fault we retry three times. Press render again; it usually works on the next try.'
           : raw;
+        void notifyRender(visitor, designId, false, raw.slice(0, 120));
         send({ error: friendly });
       } finally {
         controller.close();
