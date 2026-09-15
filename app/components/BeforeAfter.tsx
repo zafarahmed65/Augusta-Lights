@@ -177,7 +177,7 @@ export function BeforeAfter({
           </svg>
         </button>
       </div>
-      <figcaption className="mt-2.5 text-center text-[11px] text-[var(--muted)]">
+      <figcaption className="t-small mt-2.5">
         Drag the handle, or focus it and use the arrow keys
       </figcaption>
     </figure>

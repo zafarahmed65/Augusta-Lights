@@ -1,113 +1,172 @@
 @import "tailwindcss";
 
 /*
- * Dark by default: the product is night lighting, the renders are dusk scenes,
- * and a dark ground is how they will look on a phone when the customer opens the
- * text message.
+ * Design system.
+ *
+ * Minimal here means nothing decorative, not sparse. Structure comes from
+ * spacing and hairline rules rather than boxes inside boxes: one radius scale,
+ * one shadow, one accent. The renders are dusk scenes, so the interface stays
+ * dark and quiet and lets them carry every screen.
  */
 :root {
-  --bg: #090b10;
-  --surface: #12161f;
-  --surface-2: #1a1f2b;
-  --line: #262d3c;
-  --line-strong: #39425a;
-  --text: #f0f3f9;
-  --muted: #98a2b8;
-  --muted-dim: #6b7488;
-  --accent: #ffc46b;
-  --accent-ink: #1a1205;
-  /* Tinted accent ground for active states, so no component hardcodes it. */
-  --accent-soft: rgb(255 196 107 / 0.1);
-  --ok-soft: rgb(74 222 128 / 0.14);
+  /* Ground and surfaces */
+  --bg: #0a0b0e;
+  --surface: #101218;
+  --surface-2: #171a22;
+  --line: #21242e;
+  --line-strong: #333845;
+
+  /* Type */
+  --text: #f4f6fa;
+  --muted: #9096a4;
+  --faint: #7d8494;
+
+  /* One accent, used sparingly */
+  --accent: #f5b855;
+  --accent-soft: rgb(245 184 85 / 0.12);
+  --accent-ink: #1b1204;
   --ink: var(--accent);
   --ink-contrast: var(--accent-ink);
-  --ok: #4ade80;
-  --bad: #f87171;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.25);
+
+  --ok: #56d98a;
+  --ok-soft: rgb(86 217 138 / 0.14);
+  --bad: #f77a7a;
+
+  /* One shadow, one radius scale */
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.5), 0 16px 40px rgb(0 0 0 / 0.35);
+  --r-sm: 8px;
+  --r: 12px;
+  --r-lg: 16px;
+
+  --sidebar: 232px;
+  --measure: 60ch;
 }
 
 html {
   scroll-behavior: smooth;
-  /* Sticky header must not cover the heading of a jumped-to section. */
-  scroll-padding-top: 72px;
+  scroll-padding-top: 88px;
   background: var(--bg);
+  color-scheme: dark;
 }
 
 body {
   background: var(--bg);
   color: var(--text);
   font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: -0.006em;
   -webkit-font-smoothing: antialiased;
   padding-bottom: env(safe-area-inset-bottom);
 }
 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
-  }
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
 
-.label {
-  font-size: 11px;
+/* ---- type scale -------------------------------------------------------- */
+
+.t-display {
+  font-size: clamp(30px, 4.6vw, 46px);
+  line-height: 1.04;
+  letter-spacing: -0.03em;
   font-weight: 600;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--accent);
 }
+.t-title {
+  font-size: clamp(20px, 2.4vw, 26px);
+  line-height: 1.18;
+  letter-spacing: -0.022em;
+  font-weight: 600;
+}
+.t-lede { font-size: 15px; line-height: 1.65; color: var(--muted); }
+.t-body { font-size: 13.5px; line-height: 1.7; color: var(--muted); }
+.t-small { font-size: 12px; line-height: 1.6; color: var(--faint); }
 
-.card {
+.t-label {
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--faint);
+}
+.t-label-accent { color: var(--accent); }
+
+.measure { max-width: var(--measure); }
+
+/* ---- surfaces ---------------------------------------------------------- */
+
+.panel {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: var(--r);
 }
+
+/* Mount for every render, so a dusk photograph reads as a framed print. */
+.frame {
+  background: #07080b;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  overflow: hidden;
+}
+
+.rule { border-top: 1px solid var(--line); }
+
+/* ---- controls ---------------------------------------------------------- */
 
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 13px 20px;
-  border-radius: 11px;
-  font-size: 14px;
+  padding: 11px 18px;
+  border-radius: var(--r-sm);
+  font-size: 13.5px;
   font-weight: 600;
-  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+  letter-spacing: -0.005em;
+  transition: background .15s ease, border-color .15s ease, opacity .15s ease;
+  white-space: nowrap;
 }
-.btn:active { transform: translateY(1px); }
 .btn-primary { background: var(--accent); color: var(--accent-ink); }
-.btn-primary:hover { background: #ffd08a; }
-.btn-ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
-.btn-ghost:hover { border-color: var(--line-strong); background: #212736; }
+.btn-primary:hover { background: #ffc96e; }
+.btn-ghost { background: transparent; color: var(--text); border: 1px solid var(--line-strong); }
+.btn-ghost:hover { background: var(--surface-2); }
+.btn:disabled { opacity: .45; cursor: default; }
 
-/* Visible keyboard focus everywhere, without ringing on mouse clicks. */
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 6px;
+.field {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  padding: 10px 13px;
+  color: var(--text);
+  font-size: 16px; /* 16px stops iOS Safari zooming on focus */
+  transition: border-color .15s ease;
 }
+.field::placeholder { color: var(--faint); }
+.field:focus { outline: none; border-color: var(--line-strong); }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 4px; }
 
 .chip {
   display: flex;
   flex-direction: column;
-  gap: 7px;
-  padding: 10px 13px;
-  border-radius: 11px;
+  gap: 6px;
+  padding: 9px 12px;
+  border-radius: var(--r-sm);
   border: 1px solid var(--line);
-  background: var(--surface-2);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  background: var(--surface);
+  transition: border-color .15s ease, background .15s ease;
   cursor: pointer;
 }
 .chip:hover { border-color: var(--line-strong); }
-.chip[aria-pressed='true'] {
-  border-color: var(--accent);
-  background: rgb(255 196 107 / 0.1);
-}
+.chip[aria-pressed='true'] { border-color: var(--accent); background: var(--accent-soft); }
 
-/* Horizontal rails scroll cleanly on touch without a visible scrollbar. */
+/* ---- rails ------------------------------------------------------------- */
+
 .rail {
   display: flex;
-  gap: 8px;
+  gap: 7px;
   overflow-x: auto;
   scroll-snap-type: x proximity;
   scrollbar-width: none;
@@ -116,11 +175,6 @@ body {
 .rail::-webkit-scrollbar { display: none; }
 .rail > * { scroll-snap-align: start; flex: 0 0 auto; }
 
-/*
- * Edge fades, applied only on the side that actually has more content — the Rail
- * component measures overflow and toggles these. A permanent fade would imply
- * scrollable when everything already fits.
- */
 .rail-fade-right {
   -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 44px), transparent 100%);
   mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 44px), transparent 100%);
@@ -132,15 +186,6 @@ body {
 .rail-fade-left.rail-fade-right {
   -webkit-mask-image: linear-gradient(to right, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
   mask-image: linear-gradient(to right, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
-}
-
-/* Consistent mount for every render. */
-.frame {
-  background: #0b0d12;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  overflow: hidden;
-  box-shadow: var(--shadow);
 }
 
 @keyframes spin { to { transform: rotate(360deg); } }

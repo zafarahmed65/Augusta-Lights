@@ -1,43 +1,45 @@
 import Link from 'next/link';
 import { BeforeAfter } from './components/BeforeAfter';
+import { Figure } from './components/Figure';
 import { Frame } from './components/Frame';
-import { PreservationBadge } from './components/PreservationBadge';
 import { Section } from './components/Section';
-import { SiteNav, type NavItem } from './components/SiteNav';
-import { VisitPing } from './components/VisitPing';
+import { Shell, type NavItem } from './components/Shell';
 import { VariantPicker } from './components/VariantPicker';
 import { BriefChecklist } from './components/BriefChecklist';
-import { SpecRow } from './components/SpecRow';
+import { VisitPing } from './components/VisitPing';
 import { byProduct, houseBySlug, HOUSES } from '@/lib/gallery';
 
 /**
- * The demo: a read-only gallery of finished work.
+ * The case study: finished work, every image produced in advance.
  *
- * No upload, no options, no Generate — the client opens a link and sees results.
- * Every image is a build artefact, so the page renders with no API key present
- * and a visitor cannot spend anything by opening it.
+ * Statically prerendered, so opening or sharing it runs nothing and costs
+ * nothing. The live page is where the pipeline actually executes.
  */
 
 const NAV: NavItem[] = [
-  { id: 'proof', label: 'Before / after' },
+  { id: 'overview', label: 'Overview' },
   { id: 'christmas', label: 'Christmas' },
   { id: 'permanent', label: 'Permanent' },
   { id: 'cleanup', label: 'Vehicles' },
-  { id: 'compare', label: 'Compare' },
+  { id: 'compare', label: 'Comparison' },
   { id: 'quality', label: 'Quality control' },
   { id: 'brief', label: 'Your brief' },
 ];
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Spec({ items }: { items: [string, string][] }) {
   return (
-    <div className="card px-4 py-3.5">
-      <div className="text-[20px] leading-none font-semibold tracking-tight tabular-nums">{value}</div>
-      <div className="mt-1.5 text-[11.5px] leading-snug text-[var(--muted)]">{label}</div>
-    </div>
+    <dl className="grid grid-cols-2 gap-x-6 gap-y-4 sm:grid-cols-4">
+      {items.map(([k, v]) => (
+        <div key={k}>
+          <dt className="t-label">{k}</dt>
+          <dd className="mt-1.5 text-[13px] leading-snug">{v}</dd>
+        </div>
+      ))}
+    </dl>
   );
 }
 
-export default function Gallery() {
+export default function CaseStudy() {
   const payne = houseBySlug('payne') ?? HOUSES[0];
   const alvarez = houseBySlug('alvarez');
   if (!payne) return null;
@@ -46,219 +48,221 @@ export default function Gallery() {
   const hero = payne.variants[0]?.file ?? payne.master;
 
   return (
-    <>
+    <Shell items={NAV} cta={{ href: '/try', label: 'Try your photo' }}>
       <VisitPing page="case study" />
-      <SiteNav items={NAV} cta={{ href: '/try', label: 'Try your photo' }} />
+      {/* ---------------- hero ---------------- */}
+      <section id="overview" className="scroll-mt-24 pt-10 sm:pt-16">
+        <p className="t-label t-label-accent">Case study · rendered in advance</p>
+        <h1 className="t-display mt-3 max-w-[16ch]">One photo of the house. A rendering they can picture.</h1>
+        <p className="t-lede measure mt-4">
+          A GM photographs the home from the truck, picks a design, and has a dusk visualization to
+          send before the conversation cools — with the customer&apos;s actual house left intact.
+        </p>
 
-      <main id="top" className="mx-auto w-full max-w-[1120px] px-5 pb-20">
-        <div className="pt-10 pb-8 sm:pt-14">
-          <p className="label">Case study · every image produced in advance</p>
-          <h1 className="mt-3 max-w-[17ch] text-[32px] leading-[1.08] font-semibold tracking-tight sm:text-[46px]">
-            One photo of the house. A rendering they can picture.
-          </h1>
-          <p className="mt-4 max-w-[62ch] text-[15px] leading-relaxed text-[var(--muted)] sm:text-[16px]">
-            While the homeowner thinks it over, the GM photographs the house from the truck,
-            picks a design, and has a dusk visualization to text over before the conversation
-            cools. Everything on this page came out of the pipeline from one daytime photograph —
-            the customer&apos;s actual home, left intact.
-          </p>
-
-          <div className="mt-6 flex flex-col gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:flex-row sm:items-center">
-            <p className="flex-1 text-[13px] leading-relaxed text-[var(--muted)]">
-              <span className="font-semibold text-[var(--text)]">This page is a case study.</span>{' '}
-              Every render below was produced in advance and is served as a static image — opening
-              or sharing this page runs nothing and costs nothing. To watch the pipeline work on a
-              photograph it has never seen, use the live page.
-            </p>
-            <Link href="/try" className="btn btn-primary shrink-0">
-              Try your own photo →
-            </Link>
-          </div>
+        <div className="mt-8">
+          <BeforeAfter before={payne.original} after={hero} priority />
         </div>
 
-        {/* The slider sits directly under the headline rather than below a stats
-            block: on a laptop the fold lands around 860px, and a visual demo that
-            shows no image until you scroll has already lost the room. */}
-        <section id="proof" className="scroll-mt-20">
-          <BeforeAfter before={payne.original} after={hero} priority />
-          <div className="mt-4 grid grid-cols-2 gap-2.5 sm:grid-cols-4">
-            <Stat value="11" label="Lighting designs, one dusk photo" />
-            <Stat value="2048px" label="Ready to text to the customer" />
-            <Stat value={payne.preservation.score.toFixed(1)} label="Architecture preserved, measured" />
-            <Stat value="~$0.25" label="API cost per consultation" />
-          </div>
+        <div className="mt-8">
+          <Spec
+            items={[
+              ['Designs', '11 rendered'],
+              ['Output', '2048px JPEG'],
+              ['Architecture kept', `${payne.preservation.score.toFixed(1)} / 100`],
+              ['API cost', '~$0.25 per consultation'],
+            ]}
+          />
+        </div>
 
-          <p className="mt-6 max-w-[68ch] text-[14px] leading-relaxed text-[var(--muted)]">
-            <span className="font-semibold text-[var(--text)]">That&apos;s my house.</span> The left
-            side of the slider is the photograph the salesperson took. Every window, gable, dormer,
-            garage door and the stone veneer survives the conversion — that flash of recognition is
-            what makes a rendering persuasive rather than merely decorative.
-          </p>
-        </section>
+        <p className="t-body measure mt-8">
+          Every window, gable, dormer, garage door and the stone veneer survives the conversion.
+          That recognition is what makes a rendering persuasive rather than decorative — and it is
+          the part you said other tools got wrong.
+        </p>
+      </section>
 
-
-
-        {christmas.length > 0 && (
-          <Section
-            id="christmas"
-            eyebrow="Christmas lighting"
-            title="Every colour option, one house"
-            lede="SMD C9 bulbs on the front-facing roofline at 15-inch spacing. Multicolour designs use repeating groups — two red then two white — because that is how the installation is actually run. Switch between them: only the lights change."
-          >
-            <VariantPicker variants={christmas} houseName={payne.lastName} />
-            <SpecRow
-              specs={[
+      {/* ---------------- christmas ---------------- */}
+      {christmas.length > 0 && (
+        <Section
+          id="christmas"
+          label="Christmas lighting"
+          title="Every colour option, one house"
+          lede="Switch between them — the house, sky and grade hold still. Only the lights change."
+        >
+          <VariantPicker variants={christmas} houseName={payne.lastName} />
+          <div className="mt-7">
+            <Spec
+              items={[
                 ['Bulb', 'SMD C9 LED'],
                 ['Spacing', '15 inches on centre'],
                 ['Coverage', 'Front-facing roofline only'],
-                ['Pattern', 'Repeating groups, e.g. 2 red / 2 white'],
+                ['Pattern', 'Repeating groups, 2 red / 2 white'],
               ]}
             />
-          </Section>
-        )}
+          </div>
+        </Section>
+      )}
 
-        {permanent.length > 0 && (
-          <Section
-            id="permanent"
-            eyebrow="Omni permanent lighting"
-            title="Architectural wall wash"
-            lede="A different product, and it has to read as one. Fixtures sit recessed in the eave and wash light down the façade rather than appearing as exposed bulbs on the roofline."
-          >
-            <VariantPicker variants={permanent} houseName={payne.lastName} />
-            <SpecRow
-              specs={[
+      {/* ---------------- permanent ---------------- */}
+      {permanent.length > 0 && (
+        <Section
+          id="permanent"
+          label="Omni permanent"
+          title="Architectural wall wash"
+          lede="A different product, and it has to read as one — fixtures in the eave washing down the façade, not bulbs on the roofline."
+        >
+          <VariantPicker variants={permanent} houseName={payne.lastName} />
+          <div className="mt-7">
+            <Spec
+              items={[
                 ['Fixture', 'Omni architectural'],
                 ['Spacing', '8 inches on centre'],
-                ['Effect', 'Vertical wall wash down the façade'],
-                ['Options', 'Whites, RGB and paired colours'],
+                ['Effect', 'Vertical wash down the façade'],
+                ['Options', 'Whites, RGB, paired colours'],
               ]}
             />
-          </Section>
-        )}
+          </div>
+        </Section>
+      )}
 
-        {alvarez && (
-          <Section
-            id="cleanup"
-            eyebrow="Difficult photograph"
-            title="Vehicle removal, and where it stops"
-            lede="Shot in flat overcast light with a sedan parked across the façade — the kind of photo a salesperson actually takes. The car comes out and the driveway rebuilds, but anything it was covering has to be invented, because no photograph of it exists."
-          >
-            <BeforeAfter
-              before={alvarez.original}
-              after={alvarez.variants[0]?.file ?? alvarez.master}
-              beforeLabel="Original photo with vehicle"
-              afterLabel="Vehicle removed"
-            />
-
-            <div className="mt-6 grid gap-4 lg:grid-cols-2">
-              <div>
-                <div className="frame">
-                  <Frame file={alvarez.overlay} alt="Overlay showing invented structure in red where the vehicle stood" />
-                </div>
-              </div>
-              <div className="space-y-4">
-                <PreservationBadge
-                  score={alvarez.preservation.score}
-                  passed={alvarez.preservation.passed}
-                  caption="The check refused this render rather than passing it silently."
-                />
-                <p className="text-[13.5px] leading-relaxed text-[var(--muted)]">
-                  Green is structure that survived; red is structure the model invented. The red
-                  maps exactly onto where the car stood — a wall, windows and a garage it had to
-                  guess at. The rest of the house is untouched.
-                </p>
-                <p className="text-[13.5px] leading-relaxed text-[var(--muted)]">
-                  <span className="font-semibold text-[var(--text)]">In practice:</span> a car on
-                  open driveway removes cleanly. When one covers the façade, the fix costs the
-                  salesperson thirty seconds — ask the homeowner to back it out, or step left and
-                  reshoot. We would rather flag this than send someone a picture of a house that
-                  is not theirs.
-                </p>
-              </div>
-            </div>
-          </Section>
-        )}
-
-        {payne.sheet && (
-          <Section
-            id="compare"
-            eyebrow="Comparison sheet"
-            title="Four options on one page"
-            lede="A second downloadable JPEG to leave with the homeowner. All four tiles derive from the same dusk photograph, so the sky and lawn are byte-identical across them and only the lighting differs."
-          >
-            <div className="frame">
-              <Frame file={payne.sheet} alt="Two by two comparison of four lighting designs on the same house" />
-            </div>
-            <a className="btn btn-ghost mt-4" href={`/gallery/${payne.sheet}`} download>
-              Download the sheet
-            </a>
-          </Section>
-        )}
-
+      {/* ---------------- vehicles ---------------- */}
+      {alvarez && (
         <Section
-          id="quality"
-          eyebrow="Quality control"
-          title="Architecture is measured, not promised"
-          lede="Every render is compared against the original photograph and scored on how much of the building's structure came through intact. The number is reproducible, which matters to anyone who has been burned by a tool that quietly redesigned a customer's home."
+          id="cleanup"
+          label="Difficult photograph"
+          title="Vehicle removal, and where it stops"
+          lede="Flat overcast light, sedan parked across the façade. The car comes out and the driveway rebuilds — but whatever it covered has to be invented."
         >
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="frame">
-              <Frame file={payne.overlay} alt="Edge comparison overlay, preserved structure shown in green" />
-            </div>
-            <div className="space-y-4">
-              <PreservationBadge score={payne.preservation.score} passed={payne.preservation.passed} />
-              <p className="text-[13.5px] leading-relaxed text-[var(--muted)]">
-                Stated plainly, because it matters more than a marketing number: this reliably
-                catches large failures — an invented roof section, a materially changed roofline —
-                and reliably passes correct renders. It is a review aid, not a proof. A pass means
-                no gross structural change was detected, not that the architecture is certified
-                identical.
+          <BeforeAfter
+            before={alvarez.original}
+            after={alvarez.variants[0]?.file ?? alvarez.master}
+            beforeLabel="Original photo with vehicle"
+            afterLabel="Vehicle removed"
+          />
+
+          <div className="mt-7 grid gap-6 lg:grid-cols-2">
+            <Figure caption="Red is structure the model invented. Green is what it kept.">
+              <Frame file={alvarez.overlay} alt="Overlay showing invented structure in red where the vehicle stood" sizes="(min-width: 1024px) 440px, calc(100vw - 40px)" />
+            </Figure>
+            <div>
+              <div className="flex items-center gap-3">
+                <span
+                  className="grid h-9 w-9 shrink-0 place-items-center rounded-full border text-[12px] font-bold tabular-nums"
+                  style={{ borderColor: 'var(--bad)', color: 'var(--bad)' }}
+                >
+                  {Math.round(alvarez.preservation.score)}
+                </span>
+                <span className="text-[13.5px] font-semibold" style={{ color: 'var(--bad)' }}>
+                  Flagged for review
+                </span>
+              </div>
+              <p className="t-body mt-4">
+                The red maps exactly onto where the car stood — a wall, windows and a garage the
+                model guessed at. The rest of the house is untouched. The check refused this render
+                rather than passing it through.
+              </p>
+              <p className="t-body mt-3">
+                <span className="font-semibold text-[var(--text)]">In practice:</span> a car on open
+                driveway removes cleanly. When one covers the façade, the fix costs the salesperson
+                thirty seconds — back it out, or step left and reshoot.
               </p>
             </div>
           </div>
-
-          <ol className="mt-8 grid gap-2.5 sm:grid-cols-2">
-            {[
-              ['Convert to dusk', 'Sky, warm window glow, colour grade — once per property.'],
-              ['Measure what changed', 'Edge comparison against the original photograph.'],
-              ['Trace the roofline', 'Tap along the roof edge on the phone, about ten seconds.'],
-              ['Compute the bulbs', 'Every position and colour at real-world spacing.'],
-              ['Render and reconcile', 'Lights are added, then held to the dusk photo so nothing drifts.'],
-              ['Brand it locally', 'Residence name composited here, never drawn by the model.'],
-            ].map(([title, body], i) => (
-              <li key={title} className="card flex gap-3 p-3.5">
-                <span className="text-[13px] font-semibold text-[var(--accent)] tabular-nums">{i + 1}</span>
-                <span>
-                  <span className="block text-[13.5px] font-medium">{title}</span>
-                  <span className="mt-0.5 block text-[12.5px] leading-relaxed text-[var(--muted)]">{body}</span>
-                </span>
-              </li>
-            ))}
-          </ol>
         </Section>
+      )}
 
+      {/* ---------------- comparison ---------------- */}
+      {payne.sheet && (
         <Section
-          id="brief"
-          eyebrow="Against your brief"
-          title="The eight things the prototype had to show"
-          lede="Taken from your own list, in your wording. Seven are demonstrated outright; one is demonstrated with a limit worth knowing about before it surprises a GM in someone's driveway. Each links to the evidence above."
+          id="compare"
+          label="Comparison sheet"
+          title="Four options on one page"
+          lede="A second downloadable JPEG. All four derive from the same dusk photograph — the sky and lawn are byte-identical across them."
         >
-          <BriefChecklist />
+          <Figure>
+            <Frame file={payne.sheet} alt="Two by two comparison of four lighting designs on the same house" />
+          </Figure>
+          <a className="btn btn-ghost mt-5" href={`/gallery/${payne.sheet}`} download>
+            Download the sheet
+          </a>
         </Section>
+      )}
 
-        <footer className="border-t border-[var(--line)] pt-6">
-          <p className="max-w-[70ch] text-[12px] leading-relaxed text-[var(--muted)]">
-            Prototype for Augusta Lights. The houses shown are licensed stock photographs, not
-            customer properties — running this on your own difficult set is the obvious next step.
-            Every image is a 2048px JPEG produced by the pipeline in this repository; nothing on
-            this page is hand-retouched.
+      {/* ---------------- quality ---------------- */}
+      <Section
+        id="quality"
+        label="Quality control"
+        title="Architecture is measured, not promised"
+        lede="Every render is scored against the original photograph on how much of the building's structure came through."
+      >
+        <div className="grid gap-6 lg:grid-cols-2">
+          <Figure caption="Green is preserved structure. The score is the share that survived.">
+            <Frame file={payne.overlay} alt="Edge comparison overlay, preserved structure shown in green" sizes="(min-width: 1024px) 440px, calc(100vw - 40px)" />
+          </Figure>
+          <div>
+            <div className="flex items-center gap-3">
+              <span
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-full border text-[12px] font-bold tabular-nums"
+                style={{ borderColor: 'var(--ok)', color: 'var(--ok)' }}
+              >
+                {Math.round(payne.preservation.score)}
+              </span>
+              <span className="text-[13.5px] font-semibold" style={{ color: 'var(--ok)' }}>
+                Architecture preserved
+              </span>
+            </div>
+            <p className="t-body mt-4">
+              Stated plainly, because it matters more than a marketing number: this reliably catches
+              large failures — an invented roof section, a materially changed roofline — and
+              reliably passes correct renders. It is a review aid, not a proof.
+            </p>
+          </div>
+        </div>
+
+        <ol className="mt-8 grid gap-x-8 gap-y-5 sm:grid-cols-2">
+          {[
+            ['Convert to dusk', 'Sky, window glow and grade — once per property.'],
+            ['Measure what changed', 'Edge comparison against the original photograph.'],
+            ['Trace the roofline', 'Tap along the roof edge, about ten seconds.'],
+            ['Compute the bulbs', 'Every position and colour at real-world spacing.'],
+            ['Render and reconcile', 'Lights added, then held to the dusk photo so nothing drifts.'],
+            ['Brand it locally', 'Residence name composited here, never drawn by the model.'],
+          ].map(([title, body], i) => (
+            <li key={title} className="flex gap-3">
+              <span className="t-label pt-[3px] tabular-nums">{String(i + 1).padStart(2, '0')}</span>
+              <span>
+                <span className="block text-[13.5px] font-medium">{title}</span>
+                <span className="t-body mt-0.5 block">{body}</span>
+              </span>
+            </li>
+          ))}
+        </ol>
+      </Section>
+
+      {/* ---------------- brief ---------------- */}
+      <Section
+        id="brief"
+        label="Against your brief"
+        title="The eight things the prototype had to show"
+        lede="Your list, in your wording. Seven demonstrated outright; one with a limit worth knowing before it surprises a GM in a driveway."
+      >
+        <BriefChecklist />
+
+        <div className="rule mt-12 flex flex-col gap-4 pt-8 sm:flex-row sm:items-center">
+          <p className="t-body measure flex-1">
+            Everything here was produced in advance. To watch the pipeline run on a photograph it
+            has never seen, use the live page.
           </p>
-          <p className="mt-3 max-w-[70ch] text-[12px] leading-relaxed text-[var(--muted)]">
-            This page is a static gallery of finished work. It makes no API calls and holds no
-            keys, so opening or sharing it costs nothing.
-          </p>
-        </footer>
-      </main>
-    </>
+          <Link href="/try" className="btn btn-primary shrink-0">
+            Try your own photo →
+          </Link>
+        </div>
+
+        <p className="t-small mt-8">
+          Test photographs are licensed stock, not customer properties. Renders are 2048px JPEGs
+          produced by the pipeline in this repository; nothing is hand-retouched.
+        </p>
+      </Section>
+    </Shell>
   );
 }
