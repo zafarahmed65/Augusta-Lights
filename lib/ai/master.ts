@@ -1,5 +1,5 @@
 import { editImage } from './fal';
-import { MASTER_PROMPT, MASTER_PROMPT_STRICT, MASTER_SYSTEM } from './prompts';
+import { CLEANUP_PROMPT, CLEANUP_SYSTEM, MASTER_PROMPT, MASTER_PROMPT_PRECLEANED, MASTER_PROMPT_STRICT, MASTER_SYSTEM } from './prompts';
 import { verifyPreservation } from '../image/verify';
 import type { EditResult, PreservationReport } from '../types';
 
@@ -11,12 +11,22 @@ import type { EditResult, PreservationReport } from '../types';
  * house four times instead of four similar houses.
  */
 
+/**
+ * Removes vehicles and clutter as its own pass, before any relighting. Returns the
+ * cleaned photograph, still in daylight.
+ */
+export async function cleanupVehicles(original: Buffer, quality: 'draft' | 'final' = 'draft') {
+  return editImage({ prompt: CLEANUP_PROMPT, systemPrompt: CLEANUP_SYSTEM, images: [original], quality });
+}
+
 export interface MasterOptions {
   quality?: 'draft' | 'final';
   threshold?: number;
   /** Attempts including the first. A failed score retries with a stricter prompt. */
   maxAttempts?: number;
   seed?: number;
+  /** True when a cleanup pass already removed vehicles, so the dusk pass leaves the ground alone. */
+  preCleaned?: boolean;
 }
 
 export interface MasterOutcome {
@@ -31,7 +41,8 @@ export interface MasterOutcome {
 }
 
 export async function generateMaster(original: Buffer, opts: MasterOptions = {}): Promise<MasterOutcome> {
-  const { quality = 'draft', threshold = 88, maxAttempts = 2, seed } = opts;
+  const { quality = 'draft', threshold = 88, maxAttempts = 2, seed, preCleaned = false } = opts;
+  const firstPrompt = preCleaned ? MASTER_PROMPT_PRECLEANED : MASTER_PROMPT;
   const history: MasterOutcome['history'] = [];
   let costUsd = 0;
 
@@ -39,7 +50,7 @@ export async function generateMaster(original: Buffer, opts: MasterOptions = {})
 
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     const edit = await editImage({
-      prompt: attempt === 1 ? MASTER_PROMPT : MASTER_PROMPT_STRICT,
+      prompt: attempt === 1 ? firstPrompt : MASTER_PROMPT_STRICT,
       systemPrompt: MASTER_SYSTEM,
       images: [original],
       quality,

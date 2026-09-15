@@ -1,6 +1,20 @@
 {
   "houses": [
     {
+      "slug": "alvarez",
+      "lastName": "Alvarez",
+      "original": "alvarez-original.jpg",
+      "master": "alvarez-master.jpg",
+      "overlay": "alvarez-overlay.webp",
+      "preservation": {
+        "score": 97.9,
+        "localScore": 0,
+        "passed": false,
+        "attempts": 2
+      },
+      "variants": []
+    },
+    {
       "slug": "payne",
       "lastName": "Payne",
       "original": "payne-original.jpg",
@@ -94,5 +108,5 @@
       "sheet": "payne-sheet.jpg"
     }
   ],
-  "builtAt": "2026-09-15T08:03:48.165Z"
+  "builtAt": "2026-09-15T08:05:20.200Z"
 }

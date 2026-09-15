@@ -5,7 +5,7 @@ import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import sharp from 'sharp';
-import { generateMaster } from '../lib/ai/master';
+import { cleanupVehicles, generateMaster } from '../lib/ai/master';
 import { verifyPreservation } from '../lib/image/verify';
 import { applyLighting } from '../lib/ai/light';
 import { reconcileLighting } from '../lib/image/reconcile';
@@ -33,6 +33,8 @@ interface HouseSpec {
   lastName: string;
   designs: string[];
   frontageFeet?: number;
+  /** Run a dedicated vehicle-removal pass before the dusk conversion. */
+  hasVehicle?: boolean;
 }
 
 const HOUSES: HouseSpec[] = [
@@ -53,6 +55,7 @@ const HOUSES: HouseSpec[] = [
     roofline: 'fixtures/houses/house-02-car.roofline.json',
     lastName: 'Alvarez',
     frontageFeet: 40,
+    hasVehicle: true,
     designs: ['warm-white'],
   },
 ];
@@ -101,7 +104,23 @@ async function masterFor(spec: HouseSpec, original: Buffer) {
     return { buffer, report };
   }
 
-  const outcome = await generateMaster(original, { quality: 'draft' });
+  // Vehicles come out in their own pass: bundling the removal into the relight
+  // produced a perfect dusk image with the car still parked across the facade.
+  let source = original;
+  if (spec.hasVehicle) {
+    const cleanPath = path.join(CACHE, `${spec.slug}.${hash}.cleaned.jpg`);
+    if (existsSync(cleanPath)) {
+      console.log('  cleanup: cached');
+      source = await readFile(cleanPath);
+    } else {
+      console.log('  cleanup: removing vehicles');
+      const cleaned = await cleanupVehicles(source);
+      source = cleaned.buffer;
+      await writeFile(cleanPath, source);
+    }
+  }
+
+  const outcome = await generateMaster(source, { quality: 'draft', preCleaned: spec.hasVehicle });
   await writeFile(cached, outcome.buffer);
   await writeFile(path.join(CACHE, `${spec.slug}.${hash}.overlay.png`), outcome.report.overlay);
   const report = {

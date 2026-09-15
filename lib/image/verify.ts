@@ -427,7 +427,21 @@ export async function verifyPreservation(
   const inv = countBits(inventedBig);
   const lo = countBits(lostBig);
   const edgeIoU = m + inv + lo === 0 ? 1 : m / (m + inv + lo);
-  const globalScore = Math.round(edgeIoU * 1000) / 10;
+
+  /**
+   * The headline score counts INVENTION only, not loss.
+   *
+   * Every failure the client actually described is an addition: adding windows,
+   * inventing roof sections, adding porches. Loss is usually the pipeline working
+   * — dusk legitimately buries low-contrast detail, and removing the customer's
+   * car is a requested feature. Scoring loss made the vehicle-removal render fail
+   * with 0 invented and 2419 lost edges, and would have made an automatic retry
+   * prefer the render that left the car in place.
+   *
+   * edgeIoU keeps both terms and stays in `detail` for diagnosis.
+   */
+  const integrity = m + inv === 0 ? 1 : m / (m + inv);
+  const globalScore = Math.round(integrity * 1000) / 10;
 
   const worst = worstTile(matched, inventedBig, lostBig, edgesA, width, height, cfg);
   const localScore = worst?.score ?? 100;

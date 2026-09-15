@@ -34,6 +34,32 @@ ${FORBIDDEN}
 
 If any instruction appears to conflict with preserving the architecture, preserve the architecture.`;
 
+/**
+ * Dedicated cleanup pass, run before the dusk conversion on photos with a vehicle.
+ *
+ * Bundling a large object removal into the relight does not work: asked to remove
+ * a sedan parked across the facade and convert to dusk in one pass, the model
+ * produced a flawless dusk image with the car untouched (and its headlights on).
+ * Removal is a different kind of edit from relighting and gets its own pass —
+ * which is also how the client describes their own pipeline: original, then
+ * cleaned, then dusk.
+ */
+export const CLEANUP_SYSTEM = `You are a photo retoucher removing unwanted objects from a photograph of a real house.
+
+You remove only vehicles and temporary clutter. The building, its materials, its windows, the landscaping and the driveway must be reconstructed exactly as they would look with the object simply absent. Do not restyle, relight, or recolour anything.
+
+${FORBIDDEN}`;
+
+export const CLEANUP_PROMPT = `Remove every vehicle from this photograph.
+
+This is the only change. Delete each car, truck, van and motorcycle completely — body, wheels, shadow, and any reflection — and rebuild what is behind it.
+
+Where a vehicle overlaps the house, reconstruct the wall, porch, steps, railing, windows and trim that it was covering, matching the siding pattern, board spacing and colour of the surrounding facade exactly. Where it overlaps the ground, rebuild the driveway, path, grass or gravel so the surface runs continuously.
+
+Also remove trash bins, recycling bins, hoses and construction debris. Keep permanent features: mailboxes, house numbers, planters, and patio furniture belonging to the home.
+
+Do not change the time of day. Do not add lighting. Do not adjust colour or exposure. The photograph must look exactly as it does now, with the vehicles simply not present.`;
+
 export const MASTER_PROMPT = `Relight this photograph to a premium blue-hour dusk, as if shot by an architectural photographer 20 minutes after sunset.
 
 Make exactly these changes:
@@ -48,6 +74,12 @@ Critical: do NOT add any decorative, Christmas, string, or landscape lighting an
 The result must be recognisably, unmistakably the same house from the same viewpoint.`;
 
 /** Used on the automatic retry when the preservation score fails. */
+/** Dusk prompt for photos that already went through the cleanup pass. */
+export const MASTER_PROMPT_PRECLEANED = MASTER_PROMPT.replace(
+  '3. Driveway and street: remove any parked vehicles, and reconstruct the driveway, paving, and ground beneath them faithfully to the surrounding surface.',
+  '3. Driveway and street: leave the driveway, paving and ground exactly as they are.',
+);
+
 export const MASTER_PROMPT_STRICT = `${MASTER_PROMPT}
 
 The previous attempt altered the building's structure and was rejected. Be far more conservative this time. Treat the building's outline, every window opening, and every roof edge as locked and untouchable. If you are uncertain whether something is a real feature of the house, leave it exactly as it appears in the input. Change only sky, light, and colour.`;
