@@ -2,6 +2,7 @@ import sharp from 'sharp';
 import { generateMaster } from './ai/master';
 import { applyLighting, reviseImage } from './ai/light';
 import { composeHero, composeSheet } from './image/compose';
+import { reconcileLighting } from './image/reconcile';
 import { getDesign } from './designs';
 import { patchJob, readJob, readJobFile, writeJobFile } from './jobs';
 import type { RooflineSegment } from './types';
@@ -76,7 +77,17 @@ export async function lightAndCompose(id: string, master: Buffer, segments?: Roo
   if (guide) await writeJobFile(id, 'guide.png', guide);
   // Kept so branding can be re-composited locally without paying for another render.
   await writeJobFile(id, 'lit.jpg', edit.buffer);
-  const hero = await composeHero(edit.buffer, {
+
+  // Hold the render to the master so only the added light survives.
+  const reconciled = await reconcileLighting(master, edit.buffer);
+  if (reconciled.changedFraction > 0.5) {
+    console.warn(
+      `reconcile took ${(reconciled.changedFraction * 100).toFixed(0)}% of pixels from the render — ` +
+        'the light mask likely failed and drift may have passed through',
+    );
+  }
+
+  const hero = await composeHero(reconciled.buffer, {
     lastName: job.lastName,
     designLabel: design.label,
     targetWidth: HERO_WIDTH,
@@ -155,7 +166,10 @@ export async function buildSheet(id: string, designIds: string[]) {
         frontageFeet: job.frontageFeet,
       });
       spend += edit.costUsd;
-      tiles.push({ label: design.label, image: edit.buffer });
+      // Reconciling every tile is what makes the grid read as one house under four
+      // lighting options rather than four subtly different houses.
+      const tile = await reconcileLighting(master, edit.buffer);
+      tiles.push({ label: design.label, image: tile.buffer });
     }
 
     const sheet = await composeSheet(tiles, job.lastName, HERO_WIDTH);

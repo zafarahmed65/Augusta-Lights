@@ -15,7 +15,12 @@ decisions follow from that, and each costs nothing in API spend:
 2. **Every variation derives from one dusk master.** The house, sky and colour grade are
    generated once; lighting designs are applied to that fixed image. Consistency across the
    2x2 comparison sheet is guaranteed by construction, not by luck.
-3. **Bulb placement is computed, not prompted.** `lib/image/guide.ts` walks the traced
+3. **Drift is removed, not prompted away.** Even when told not to, the model nudges the
+   sky and grade while adding lights, which is glaring across a 2x2 sheet. `lib/image/reconcile.ts`
+   uses the per-pixel luminance *increase* as a mask: the render shows through where it got
+   brighter, the master is kept verbatim everywhere else. Sky, landscaping and grade are then
+   identical across variations by construction.
+4. **Bulb placement is computed, not prompted.** `lib/image/guide.ts` walks the traced
    roofline and places every bulb at real-world spacing in the right colour, then hands the
    model an overlay. The model renders lights at given points instead of inventing a layout —
    which is what makes "2 red / 2 white" come out as 2 red / 2 white.
@@ -29,7 +34,8 @@ decisions follow from that, and each costs nothing in API spend:
 | S3 roofline trace | UI | free |
 | S4 bulb guide render | `lib/image/guide.ts` | free, local |
 | S5 lighting pass | `lib/ai/light.ts` | 1 call per design |
-| S6 branding composite | `lib/image/compose.ts` | free, local |
+| S6 reconcile against master | `lib/image/reconcile.ts` | free, local |
+| S7 branding composite | `lib/image/compose.ts` | free, local |
 
 ## Setup
 
