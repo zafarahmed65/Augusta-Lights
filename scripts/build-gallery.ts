@@ -266,7 +266,31 @@ async function main() {
 
   const manifest = path.join(process.cwd(), 'lib', 'gallery-data.json');
   const existing = existsSync(manifest) ? JSON.parse(await readFile(manifest, 'utf8')) : { houses: [] };
-  const merged = [...houses, ...existing.houses.filter((h: GalleryHouse) => !houses.some((n) => n.slug === h.slug))];
+  const previous: GalleryHouse[] = existing.houses ?? [];
+
+  /*
+   * Merge variants rather than replacing the house.
+   *
+   * A partial run (--designs=… or --master-only) only collects the designs it was
+   * asked for. Replacing the whole entry silently dropped the other ten renders
+   * from the manifest even though their files were still on disk, so the gallery
+   * showed a single lighting option and picked the wrong hero image. Variants are
+   * now merged by designId and re-ordered to match the spec.
+   */
+  const merged: GalleryHouse[] = [
+    ...houses.map((fresh) => {
+      const before = previous.find((h) => h.slug === fresh.slug);
+      if (!before) return fresh;
+      const byId = new Map(before.variants.map((v) => [v.designId, v]));
+      for (const v of fresh.variants) byId.set(v.designId, v);
+      const order = HOUSES.find((h) => h.slug === fresh.slug)?.designs ?? [];
+      const variants = [...byId.values()].sort(
+        (a, b) => order.indexOf(a.designId) - order.indexOf(b.designId),
+      );
+      return { ...fresh, variants, sheet: fresh.sheet ?? before.sheet };
+    }),
+    ...previous.filter((h) => !houses.some((n) => n.slug === h.slug)),
+  ];
   await writeFile(
     manifest,
     JSON.stringify({ houses: merged, dims, widths: WIDTHS, builtAt: new Date().toISOString() }, null, 2),

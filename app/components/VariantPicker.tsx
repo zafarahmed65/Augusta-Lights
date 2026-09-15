@@ -44,7 +44,9 @@ export function VariantPicker({ variants, houseName }: { variants: GalleryVarian
             style={{ opacity: i === active ? 1 : 0 }}
           />
         ))}
-        <div className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/65 px-2.5 py-1.5 backdrop-blur-sm">
+        {/* Top-left: the residence name and design label are composited into the
+            bottom-left of every render, so a badge there collides with them. */}
+        <div className="pointer-events-none absolute top-3 left-3 rounded-md bg-black/65 px-2.5 py-1.5 backdrop-blur-sm">
           <div className="text-[12px] font-semibold">{current.label}</div>
           {design && (
             <div className="text-[10px] text-white/70">
