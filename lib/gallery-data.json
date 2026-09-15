@@ -1,29 +1,15 @@
 {
   "houses": [
     {
-      "slug": "alvarez",
-      "lastName": "Alvarez",
-      "original": "alvarez-original.jpg",
-      "master": "alvarez-master.jpg",
-      "overlay": "alvarez-overlay.webp",
-      "preservation": {
-        "score": 91.7,
-        "localScore": 0,
-        "passed": false,
-        "attempts": 2
-      },
-      "variants": []
-    },
-    {
       "slug": "payne",
       "lastName": "Payne",
       "original": "payne-original.jpg",
       "master": "payne-master.jpg",
       "overlay": "payne-overlay.webp",
       "preservation": {
-        "score": 98.3,
+        "score": 98.6,
         "localScore": 30.9,
-        "passed": false,
+        "passed": true,
         "attempts": 2
       },
       "variants": [
@@ -39,74 +25,179 @@
           "label": "Cool White",
           "product": "c9",
           "file": "payne-cool-white.jpg",
-          "bulbCount": 50
+          "bulbCount": 0
         },
         {
           "designId": "candy-cane",
           "label": "Candy Cane",
           "product": "c9",
           "file": "payne-candy-cane.jpg",
-          "bulbCount": 50
+          "bulbCount": 0
         },
         {
           "designId": "blue-white",
           "label": "Blue / White",
           "product": "c9",
           "file": "payne-blue-white.jpg",
-          "bulbCount": 50
+          "bulbCount": 0
         },
         {
           "designId": "red-green",
           "label": "Red / Green",
           "product": "c9",
           "file": "payne-red-green.jpg",
-          "bulbCount": 50
+          "bulbCount": 0
         },
         {
           "designId": "omni-warm",
           "label": "Warm Architectural White",
           "product": "omni",
           "file": "payne-omni-warm.jpg",
-          "bulbCount": 93
+          "bulbCount": 0
         },
         {
           "designId": "omni-cool",
           "label": "Cool Architectural White",
           "product": "omni",
           "file": "payne-omni-cool.jpg",
-          "bulbCount": 93
+          "bulbCount": 0
         },
         {
           "designId": "omni-rgb",
           "label": "RGB / Rainbow",
           "product": "omni",
           "file": "payne-omni-rgb.jpg",
-          "bulbCount": 93
+          "bulbCount": 0
         },
         {
           "designId": "omni-red-white",
           "label": "Red / White",
           "product": "omni",
           "file": "payne-omni-red-white.jpg",
-          "bulbCount": 93
+          "bulbCount": 0
         },
         {
           "designId": "omni-blue-white",
           "label": "Blue / White",
           "product": "omni",
           "file": "payne-omni-blue-white.jpg",
-          "bulbCount": 93
+          "bulbCount": 0
         },
         {
           "designId": "omni-red-green",
           "label": "Red / Green",
           "product": "omni",
           "file": "payne-omni-red-green.jpg",
-          "bulbCount": 93
+          "bulbCount": 0
         }
       ],
       "sheet": "payne-sheet.jpg"
+    },
+    {
+      "slug": "alvarez",
+      "lastName": "Alvarez",
+      "original": "alvarez-original.jpg",
+      "master": "alvarez-master.jpg",
+      "overlay": "alvarez-overlay.webp",
+      "preservation": {
+        "score": 91.7,
+        "localScore": 0,
+        "passed": false,
+        "attempts": 2
+      },
+      "variants": [
+        {
+          "designId": "warm-white",
+          "label": "Warm White",
+          "product": "c9",
+          "file": "alvarez-warm-white.jpg",
+          "bulbCount": 0
+        }
+      ]
     }
   ],
-  "builtAt": "2026-09-15T08:07:51.725Z"
+  "dims": {
+    "alvarez-master.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "alvarez-original.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "alvarez-overlay.webp": {
+      "w": 1200,
+      "h": 900
+    },
+    "alvarez-warm-white.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-blue-white.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-candy-cane.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-cool-white.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-master.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-omni-blue-white.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-omni-cool.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-omni-red-green.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-omni-red-white.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-omni-rgb.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-omni-warm.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-original.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-overlay.webp": {
+      "w": 1200,
+      "h": 900
+    },
+    "payne-red-green.jpg": {
+      "w": 2048,
+      "h": 1536
+    },
+    "payne-sheet.jpg": {
+      "w": 2048,
+      "h": 1831
+    },
+    "payne-warm-white.jpg": {
+      "w": 2048,
+      "h": 1536
+    }
+  },
+  "widths": [
+    640,
+    1024,
+    1536
+  ],
+  "builtAt": "2026-09-15T08:15:38.188Z"
 }

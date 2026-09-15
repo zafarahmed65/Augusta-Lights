@@ -1,84 +1,125 @@
 @import "tailwindcss";
 
 /*
- * Dark by default: the product is night lighting, the GM is often in a vehicle at
- * dusk, and a dark ground makes the renders read the way they will on a phone
- * when the customer opens the text message.
+ * Dark by default: the product is night lighting, the renders are dusk scenes,
+ * and a dark ground is how they will look on a phone when the customer opens the
+ * text message.
  */
 :root {
-  --bg: #0b0d12;
-  --surface: #141821;
-  --surface-2: #1c2130;
-  --line: #2a3040;
-  --text: #eef1f7;
-  --muted: #98a1b4;
+  --bg: #090b10;
+  --surface: #12161f;
+  --surface-2: #1a1f2b;
+  --line: #262d3c;
+  --line-strong: #39425a;
+  --text: #f0f3f9;
+  --muted: #98a2b8;
+  --muted-dim: #6b7488;
   --accent: #ffc46b;
   --accent-ink: #1a1205;
   --ok: #4ade80;
-  --warn: #fbbf24;
   --bad: #f87171;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.25);
 }
 
-html, body {
+html {
+  scroll-behavior: smooth;
+  /* Sticky header must not cover the heading of a jumped-to section. */
+  scroll-padding-top: 72px;
   background: var(--bg);
-  color: var(--text);
-  -webkit-font-smoothing: antialiased;
 }
 
 body {
+  background: var(--bg);
+  color: var(--text);
   font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
-  /* Safe-area padding so controls clear the home indicator when installed to the
-     home screen, which is how the client intends to use this. */
+  -webkit-font-smoothing: antialiased;
   padding-bottom: env(safe-area-inset-bottom);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .label {
   font-size: 11px;
-  letter-spacing: 0.14em;
+  font-weight: 600;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--muted);
+  color: var(--accent);
 }
 
 .card {
   background: var(--surface);
   border: 1px solid var(--line);
-  border-radius: 14px;
-}
-
-.field {
-  width: 100%;
-  background: var(--surface-2);
-  border: 1px solid var(--line);
-  border-radius: 10px;
-  padding: 12px 14px;
-  color: var(--text);
-  font-size: 16px; /* 16px minimum stops iOS Safari zooming on focus */
-}
-
-.field:focus {
-  outline: none;
-  border-color: var(--accent);
+  border-radius: 16px;
 }
 
 .btn {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  width: 100%;
-  padding: 15px 18px;
-  border-radius: 12px;
-  font-size: 15px;
+  padding: 13px 20px;
+  border-radius: 11px;
+  font-size: 14px;
   font-weight: 600;
-  letter-spacing: 0.02em;
-  transition: opacity 0.15s ease, background 0.15s ease;
+  transition: background 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
 }
-
+.btn:active { transform: translateY(1px); }
 .btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-primary:hover { background: #ffd08a; }
 .btn-ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
-.btn:disabled { opacity: 0.45; }
+.btn-ghost:hover { border-color: var(--line-strong); background: #212736; }
 
-@media (prefers-reduced-motion: no-preference) {
-  .pulse { animation: pulse 1.6s ease-in-out infinite; }
+/* Visible keyboard focus everywhere, without ringing on mouse clicks. */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
-@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.45 } }
+
+.chip {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 10px 13px;
+  border-radius: 11px;
+  border: 1px solid var(--line);
+  background: var(--surface-2);
+  transition: border-color 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+}
+.chip:hover { border-color: var(--line-strong); }
+.chip[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: rgb(255 196 107 / 0.1);
+}
+
+/* Horizontal rails scroll cleanly on touch without a visible scrollbar. */
+.rail {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+/*
+ * Fade the right edge so a rail that runs off screen reads as scrollable rather
+ * than as content that has been cut off. Only where the rail actually scrolls —
+ * the design chips wrap into a grid from the `sm` breakpoint up.
+ */
+.rail-fade {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 32px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 32px), transparent 100%);
+}
+@media (min-width: 640px) {
+  .rail-fade-sm-off { -webkit-mask-image: none; mask-image: none; }
+}

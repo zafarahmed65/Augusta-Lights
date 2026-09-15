@@ -50,6 +50,11 @@ The deployed page is a **static gallery** — finished work, not a live generato
 upload form and no Generate button, so it renders with no `FAL_KEY` present and a visitor
 cannot spend anything by opening it.
 
+The page is fully static — the production build emits prerendered HTML and no server
+functions — and ships responsive image sizes (640/1024/1536/full) generated at build time.
+`next/image` is deliberately not used: its optimizer is a server function, which would break
+that guarantee.
+
 Assets live in `public/gallery/` and are described by `lib/gallery-data.json`, both produced by:
 
 ```bash

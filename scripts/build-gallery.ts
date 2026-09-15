@@ -25,6 +25,13 @@ import type { RooflineSegment } from '../lib/types';
 const OUT = path.join(process.cwd(), 'public', 'gallery');
 const CACHE = path.join(process.cwd(), 'out', 'gallery-cache');
 const HERO_WIDTH = 2048;
+/**
+ * Responsive derivatives written next to every full-size asset, as
+ * `name-<width>.jpg`. next/image would solve this too, but its optimizer is a
+ * server function and this build has to stay fully static, so the sizes are
+ * produced here and the page ships a plain srcset.
+ */
+const WIDTHS = [640, 1024, 1536];
 
 interface HouseSpec {
   slug: string;
@@ -234,10 +241,36 @@ async function main() {
     });
   }
 
+  // Derivatives for every full-size JPEG in the gallery.
+  const full = (await import('node:fs')).readdirSync(OUT).filter((f) => /\.jpg$/.test(f) && !/-\d+\.jpg$/.test(f));
+  for (const file of full) {
+    const src = path.join(OUT, file);
+    const meta = await sharp(src).metadata();
+    for (const w of WIDTHS) {
+      if ((meta.width ?? 0) <= w) continue;
+      const dest = path.join(OUT, file.replace(/\.jpg$/, `-${w}.jpg`));
+      if (existsSync(dest)) continue;
+      await sharp(src).resize(w).jpeg({ quality: 82, mozjpeg: true }).toFile(dest);
+    }
+  }
+  console.log(`\nresponsive sizes: ${WIDTHS.join(', ')} for ${full.length} images`);
+
+  // Intrinsic dimensions for every asset, so the page can reserve exact space and
+  // never shift layout while images load.
+  const dims: Record<string, { w: number; h: number }> = {};
+  for (const file of (await import('node:fs')).readdirSync(OUT)) {
+    if (!/\.(jpg|webp|png)$/.test(file) || /-\d+\.jpg$/.test(file)) continue;
+    const m = await sharp(path.join(OUT, file)).metadata();
+    dims[file] = { w: m.width ?? 0, h: m.height ?? 0 };
+  }
+
   const manifest = path.join(process.cwd(), 'lib', 'gallery-data.json');
   const existing = existsSync(manifest) ? JSON.parse(await readFile(manifest, 'utf8')) : { houses: [] };
   const merged = [...houses, ...existing.houses.filter((h: GalleryHouse) => !houses.some((n) => n.slug === h.slug))];
-  await writeFile(manifest, JSON.stringify({ houses: merged, builtAt: new Date().toISOString() }, null, 2));
+  await writeFile(
+    manifest,
+    JSON.stringify({ houses: merged, dims, widths: WIDTHS, builtAt: new Date().toISOString() }, null, 2),
+  );
 
   const spent = (await totalSpend()) - start;
   console.log(`\nthis run: $${spent.toFixed(2)} | session total: $${(await totalSpend()).toFixed(2)}`);

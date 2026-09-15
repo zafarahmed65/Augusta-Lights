@@ -1,50 +1,38 @@
-'use client';
-
 /**
- * The client's acceptance criterion made visible. Showing the number — and the
- * edge overlay behind it — is the point of difference from every other tool
- * they have tried, so it is surfaced in the UI rather than buried in a log.
+ * The client's acceptance criterion, made visible.
+ *
+ * Showing the number — and saying plainly what it does and does not establish —
+ * is the point of difference from every tool they have been burned by.
  */
 export function PreservationBadge({
   score,
   passed,
-  overlayUrl,
-  onToggleOverlay,
-  showingOverlay,
+  caption,
 }: {
   score: number;
   passed: boolean;
-  overlayUrl?: string;
-  onToggleOverlay?: () => void;
-  showingOverlay?: boolean;
+  caption?: string;
 }) {
   const colour = passed ? 'var(--ok)' : 'var(--bad)';
   return (
-    <div className="card flex items-center gap-3 px-3.5 py-3">
+    <div className="card flex items-center gap-4 p-4">
       <div
-        className="grid h-11 w-11 shrink-0 place-items-center rounded-full border-2 text-[13px] font-bold"
+        className="grid h-14 w-14 shrink-0 place-items-center rounded-full border-2 text-[15px] font-bold tabular-nums"
         style={{ borderColor: colour, color: colour }}
       >
         {Math.round(score)}
       </div>
-      <div className="min-w-0 flex-1">
-        <div className="text-[13px] font-semibold">
-          {passed ? 'Architecture preserved' : 'Architecture may have changed'}
+      <div className="min-w-0">
+        <div className="text-[14px] font-semibold" style={{ color: colour }}>
+          {passed ? 'Architecture preserved' : 'Flagged for review'}
         </div>
-        <div className="text-[11px] leading-snug text-[var(--muted)]">
-          {passed
-            ? 'Windows, roofline and materials match the original photo.'
-            : 'Review the highlighted area before sending to the customer.'}
-        </div>
+        <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--muted)]">
+          {caption ??
+            (passed
+              ? 'Windows, roofline and materials match the original photograph.'
+              : 'Structure was detected that is not in the original photograph.')}
+        </p>
       </div>
-      {overlayUrl && (
-        <button
-          onClick={onToggleOverlay}
-          className="shrink-0 rounded-lg border border-[var(--line)] px-2.5 py-1.5 text-[11px] text-[var(--muted)]"
-        >
-          {showingOverlay ? 'Hide' : 'Proof'}
-        </button>
-      )}
     </div>
   );
 }
