@@ -71,11 +71,29 @@ export async function POST(req: Request) {
 
       try {
         const design = getDesign(designId);
-        const original = await sharp(Buffer.from(await photo.arrayBuffer()))
-          .rotate()
-          .resize(INGEST_WIDTH, undefined, { withoutEnlargement: true })
-          .jpeg({ quality: 92 })
-          .toBuffer();
+
+        /*
+         * Normalise whatever arrived to JPEG before anything else touches it.
+         * sharp decodes HEIC (what an iPhone shoots by default), webp, png and
+         * tiff, and rotate() applies the EXIF orientation so a portrait photo
+         * does not reach the model sideways. A decode failure is a bad file, not
+         * a pipeline fault, so it gets its own message.
+         */
+        let original: Buffer;
+        try {
+          original = await sharp(Buffer.from(await photo.arrayBuffer()))
+            .rotate()
+            .resize(INGEST_WIDTH, undefined, { withoutEnlargement: true })
+            .jpeg({ quality: 92 })
+            .toBuffer();
+        } catch {
+          send({
+            error:
+              'That file could not be read as an image. JPEG, PNG, HEIC and WebP all work — ' +
+              'if it came from a screenshot tool or a messaging app, try the original photo.',
+          });
+          return;
+        }
 
         send({ step: 'Converting the photo to dusk' });
         const master = await generateMaster(original, { quality: 'draft', maxAttempts: 1 });
