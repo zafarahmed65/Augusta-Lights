@@ -59,6 +59,15 @@ export default function CaseStudy() {
           send before the conversation cools — with the customer&apos;s actual house left intact.
         </p>
 
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Link href="/try" className="btn btn-primary">
+            Upload your photo →
+          </Link>
+          <span className="t-small">
+            Runs live on any house. Everything below was rendered in advance.
+          </span>
+        </div>
+
         <div className="mt-8">
           <BeforeAfter before={payne.original} after={hero} priority />
         </div>

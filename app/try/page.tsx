@@ -19,7 +19,7 @@ export default function TryPage() {
   return (
     <>
       <VisitPing page="try your photo" />
-      <Shell back={{ href: '/', label: 'Case study' }}>
+      <Shell back={{ href: '/', label: 'Case study' }} wide>
         <section className="pt-10 pb-9 sm:pt-16">
           <p className="t-label t-label-accent">Live · runs on upload</p>
           <h1 className="t-display mt-3 max-w-[17ch]">Try it on a house we&apos;ve never seen</h1>

@@ -37,11 +37,14 @@ export function Shell({
   items = [],
   cta,
   back,
+  wide = false,
   children,
 }: {
   items?: NavItem[];
   cta?: { href: string; label: string };
   back?: { href: string; label: string };
+  /** Wider measure for tool screens, where the work needs the room. */
+  wide?: boolean;
   children: React.ReactNode;
 }) {
   const [active, setActive] = useState(items[0]?.id);
@@ -156,7 +159,9 @@ export function Shell({
       </header>
 
       <main className="min-w-0 flex-1">
-        <div className="mx-auto w-full max-w-[920px] px-5 pb-24 lg:px-12">{children}</div>
+        <div className={`mx-auto w-full px-5 pb-24 lg:px-12 ${wide ? 'max-w-[1240px]' : 'max-w-[920px]'}`}>
+          {children}
+        </div>
       </main>
     </div>
   );
