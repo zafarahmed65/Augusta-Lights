@@ -4,58 +4,72 @@ import { useRef, useState } from 'react';
 import { CHRISTMAS_DESIGNS, PERMANENT_DESIGNS } from '@/lib/designs';
 import { PatternSwatch } from './PatternSwatch';
 import { Rail } from './Rail';
+import { BeforeAfter } from './BeforeAfter';
 import type { Design } from '@/lib/types';
 
 interface Result {
   before: string;
   after: string;
+  width: number;
+  height: number;
   design: string;
   preservation?: { score: number; passed: boolean };
 }
 
 const GROUPS: { title: string; note: string; designs: Design[] }[] = [
-  {
-    title: 'Christmas lighting',
-    note: 'SMD C9 bulbs on the front-facing roofline, 15" spacing',
-    designs: CHRISTMAS_DESIGNS,
-  },
-  {
-    title: 'Omni permanent lighting',
-    note: 'Recessed eave fixtures washing down the façade, 8" spacing',
-    designs: PERMANENT_DESIGNS,
-  },
+  { title: 'Christmas lighting', note: 'SMD C9 on the roofline · 15" spacing', designs: CHRISTMAS_DESIGNS },
+  { title: 'Omni permanent', note: 'Recessed eave wall wash · 8" spacing', designs: PERMANENT_DESIGNS },
 ];
+
+const ALL = [...CHRISTMAS_DESIGNS, ...PERMANENT_DESIGNS];
+
+function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
+  return (
+    <section>
+      <h3 className="flex items-center gap-2 text-[12px] font-semibold tracking-wide">
+        <span className="grid h-5 w-5 place-items-center rounded-full bg-[var(--surface-2)] text-[10px] text-[var(--muted)] tabular-nums">
+          {n}
+        </span>
+        {title}
+      </h3>
+      <div className="mt-2.5">{children}</div>
+    </section>
+  );
+}
 
 /**
  * Run the pipeline on your own photograph.
  *
- * Renders are cached per design for as long as the same photo is loaded. Picking
- * a design you have already rendered shows the saved image instead of calling the
- * model again — switching back and forth to compare options is the natural thing
- * to do here, and every one of those calls costs real money.
+ * Laid out as a numbered flow with the result given the room it deserves: the
+ * render is the thing being judged, so it gets the same large comparison slider
+ * as the case study rather than a pair of thumbnails.
+ *
+ * Renders are cached per design while the same photo is loaded. Comparing options
+ * is the obvious thing to do here and every switch back would otherwise be another
+ * two model passes for an image already produced.
  */
 export function TryIt({ needsPasscode }: { needsPasscode: boolean }) {
   const fileRef = useRef<HTMLInputElement>(null);
   const [preview, setPreview] = useState<string>();
+  const [fileName, setFileName] = useState<string>();
   const [designId, setDesignId] = useState('warm-white');
   const [lastName, setLastName] = useState('');
   const [passcode, setPasscode] = useState('');
   const [step, setStep] = useState<string>();
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
-  /** Keyed by design id, cleared whenever a different photo is chosen. */
   const [results, setResults] = useState<Record<string, Result>>({});
 
   const current = results[designId];
-  const allDesigns = [...CHRISTMAS_DESIGNS, ...PERMANENT_DESIGNS];
-  const activeLabel = allDesigns.find((d) => d.id === designId)?.label ?? '';
+  const activeLabel = ALL.find((d) => d.id === designId)?.label ?? '';
+  const rendered = Object.keys(results).length;
 
   function chooseFile(e: React.ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (!f) return;
     setPreview(URL.createObjectURL(f));
-    // A new photo invalidates every saved render.
-    setResults({});
+    setFileName(f.name);
+    setResults({}); // a new photo invalidates every saved render
     setError(undefined);
   }
 
@@ -94,10 +108,7 @@ export function TryIt({ needsPasscode }: { needsPasscode: boolean }) {
           if (msg.error) throw new Error(msg.error);
           if (msg.preservation) preservation = msg.preservation;
           if (msg.step) setStep(msg.step);
-          if (msg.done) {
-            const saved: Result = { ...msg, preservation };
-            setResults((prev) => ({ ...prev, [designId]: saved }));
-          }
+          if (msg.done) setResults((prev) => ({ ...prev, [designId]: { ...msg, preservation } }));
         }
       }
     } catch (err) {
@@ -109,9 +120,10 @@ export function TryIt({ needsPasscode }: { needsPasscode: boolean }) {
   }
 
   return (
-    <div className="card overflow-hidden">
-      <div className="grid gap-5 p-5 lg:grid-cols-[minmax(0,330px)_minmax(0,1fr)]">
-        <div className="space-y-4">
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,370px)_minmax(0,1fr)] lg:items-start">
+      {/* ---------------- controls ---------------- */}
+      <div className="card space-y-6 p-5 lg:sticky lg:top-20">
+        <Step n={1} title="Photograph">
           <input
             ref={fileRef}
             id="try-photo"
@@ -123,163 +135,167 @@ export function TryIt({ needsPasscode }: { needsPasscode: boolean }) {
           />
           <label
             htmlFor="try-photo"
-            className="flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[var(--line-strong)] bg-[var(--surface-2)] transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
+            className="group relative flex aspect-[4/3] cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[var(--line-strong)] bg-[var(--surface-2)] transition-colors hover:border-[var(--accent)]"
             style={busy ? { opacity: 0.5, pointerEvents: 'none' } : undefined}
           >
             {preview ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={preview} alt="Your photo" className="h-full w-full object-cover" />
+              <>
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={preview} alt="Your photo" className="h-full w-full object-cover" />
+                <span className="absolute inset-x-0 bottom-0 truncate bg-black/70 px-3 py-2 text-[11px] text-white backdrop-blur-sm">
+                  {fileName} · tap to change
+                </span>
+              </>
             ) : (
-              <span className="px-4 text-center">
-                <span className="block text-[22px]">📷</span>
-                <span className="mt-1.5 block text-[13px] font-medium">Choose a house photo</span>
-                <span className="mt-1 block text-[11px] text-[var(--muted)]">
-                  Front-facing, daylight. JPEG, PNG or HEIC.
+              <span className="px-5 text-center">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" className="mx-auto text-[var(--muted)]" aria-hidden="true">
+                  <path d="M12 16V4m0 0L7.5 8.5M12 4l4.5 4.5" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+                  <path d="M3.5 15v3A2.5 2.5 0 0 0 6 20.5h12a2.5 2.5 0 0 0 2.5-2.5v-3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+                </svg>
+                <span className="mt-3 block text-[13.5px] font-medium">Choose a house photo</span>
+                <span className="mt-1 block text-[11.5px] leading-relaxed text-[var(--muted)]">
+                  Front-facing, taken in daylight.<br />JPEG, PNG or HEIC.
                 </span>
               </span>
             )}
           </label>
+        </Step>
 
-          <div>
-            <label className="label" htmlFor="try-name">Surname (optional)</label>
+        <Step n={2} title="Lighting design">
+          <div className="space-y-4">
+            {GROUPS.map((group) => (
+              <div key={group.title}>
+                <div className="flex items-baseline justify-between gap-2">
+                  <span className="text-[11px] font-semibold text-[var(--text)]">{group.title}</span>
+                  <span className="text-[10.5px] text-[var(--muted)]">{group.note}</span>
+                </div>
+                <div className="mt-2">
+                  <Rail ariaLabel={group.title} className="sm:flex-wrap sm:overflow-visible">
+                    {group.designs.map((d) => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        aria-pressed={designId === d.id}
+                        disabled={busy}
+                        onClick={() => setDesignId(d.id)}
+                        className="chip"
+                        style={busy ? { opacity: 0.55 } : undefined}
+                      >
+                        <span className="flex items-center gap-1.5 text-[12px] font-medium whitespace-nowrap">
+                          {d.label}
+                          {results[d.id] && <span aria-label="already rendered" className="text-[9px] text-[var(--ok)]">●</span>}
+                        </span>
+                        <PatternSwatch design={d} dots={6} />
+                      </button>
+                    ))}
+                  </Rail>
+                </div>
+              </div>
+            ))}
+          </div>
+        </Step>
+
+        <Step n={3} title="Details">
+          <div className="space-y-2.5">
             <input
-              id="try-name"
-              className="field mt-1.5"
-              placeholder="Payne"
+              className="field"
+              placeholder="Customer surname (optional)"
+              aria-label="Customer surname"
               value={lastName}
               disabled={busy}
               onChange={(e) => setLastName(e.target.value)}
             />
-          </div>
-
-          {needsPasscode && (
-            <div>
-              <label className="label" htmlFor="try-code">Passcode</label>
+            {needsPasscode && (
               <input
-                id="try-code"
-                className="field mt-1.5"
+                className="field"
+                placeholder="Passcode"
+                aria-label="Passcode"
                 value={passcode}
                 disabled={busy}
                 onChange={(e) => setPasscode(e.target.value)}
               />
-            </div>
-          )}
+            )}
+          </div>
+        </Step>
 
-          {GROUPS.map((group) => (
-            <div key={group.title}>
-              <div className="label">{group.title}</div>
-              <p className="mt-1 text-[11px] text-[var(--muted)]">{group.note}</p>
-              <div className="mt-2">
-                <Rail ariaLabel={group.title} className="sm:flex-wrap sm:overflow-visible">
-                  {group.designs.map((d) => (
-                    <button
-                      key={d.id}
-                      type="button"
-                      aria-pressed={designId === d.id}
-                      disabled={busy}
-                      onClick={() => setDesignId(d.id)}
-                      className="chip relative"
-                      style={busy ? { opacity: 0.55 } : undefined}
-                    >
-                      <span className="flex items-center gap-1.5 text-[12px] font-medium whitespace-nowrap">
-                        {d.label}
-                        {results[d.id] && (
-                          <span
-                            title="Already rendered"
-                            aria-label="Already rendered"
-                            className="text-[10px] text-[var(--ok)]"
-                          >
-                            ●
-                          </span>
-                        )}
-                      </span>
-                      <PatternSwatch design={d} dots={6} />
-                    </button>
-                  ))}
-                </Rail>
-              </div>
-            </div>
-          ))}
+        {error && <p className="text-[12.5px] leading-relaxed text-[var(--bad)]">{error}</p>}
 
-          {error && <p className="text-[12.5px] leading-relaxed text-[var(--bad)]">{error}</p>}
-
-          {current ? (
-            <>
-              <button className="btn btn-ghost w-full" onClick={run} disabled={busy}>
-                Render {activeLabel} again
-              </button>
-              <p className="text-[11px] leading-relaxed text-[var(--muted)]">
-                This design is already rendered and shown on the right — switching between saved
-                designs is free. Rendering again costs another two model passes.
-              </p>
-            </>
-          ) : (
-            <>
-              <button className="btn btn-primary w-full" onClick={run} disabled={busy}>
-                {busy ? 'Processing…' : `Render ${activeLabel}`}
-              </button>
-              <p className="text-[11px] leading-relaxed text-[var(--muted)]">
-                Two model passes, usually two to four minutes. Keep this tab open.
-              </p>
-            </>
-          )}
+        <div className="space-y-2">
+          <button
+            className={`btn w-full ${current ? 'btn-ghost' : 'btn-primary'}`}
+            onClick={run}
+            disabled={busy}
+          >
+            {busy ? 'Processing…' : current ? `Render ${activeLabel} again` : `Render ${activeLabel}`}
+          </button>
+          <p className="text-[11px] leading-relaxed text-[var(--muted)]">
+            {current
+              ? 'Already rendered and shown alongside. Switching between saved designs is free; rendering again is two more model passes.'
+              : 'Two model passes, usually two to four minutes. Keep this tab open.'}
+          </p>
         </div>
+      </div>
 
-        <div className="min-h-[260px] rounded-xl border border-[var(--line)] bg-[var(--surface-2)] p-3">
-          {busy ? (
-            <div className="grid h-full place-items-center px-6 text-center">
-              <div>
-                <div
-                  className="mx-auto h-9 w-9 rounded-full border-2 border-[var(--line-strong)] border-t-[var(--accent)]"
-                  style={{ animation: 'spin 0.9s linear infinite' }}
-                  aria-hidden="true"
-                />
-                <p className="mt-4 text-[13px] font-medium">Your image is processing</p>
-                <p className="mt-1.5 text-[12px] text-[var(--muted)]">{step ?? 'Starting'}…</p>
-                <p className="mt-3 text-[11px] text-[var(--muted)]">
-                  This takes two to four minutes. Please keep this tab open.
-                </p>
-              </div>
+      {/* ---------------- result ---------------- */}
+      <div className="min-h-[420px]">
+        {busy ? (
+          <div className="card grid min-h-[420px] place-items-center p-8 text-center">
+            <div>
+              <div
+                className="mx-auto h-10 w-10 rounded-full border-2 border-[var(--line-strong)] border-t-[var(--accent)]"
+                style={{ animation: 'spin 0.9s linear infinite' }}
+                aria-hidden="true"
+              />
+              <p className="mt-5 text-[15px] font-semibold">Your image is processing</p>
+              <p className="mt-1.5 text-[13px] text-[var(--muted)]">{step ?? 'Starting'}…</p>
+              <p className="mx-auto mt-4 max-w-[34ch] text-[11.5px] leading-relaxed text-[var(--muted)]">
+                Two to four minutes. Please keep this tab open — the result appears here.
+              </p>
             </div>
-          ) : current ? (
-            <div className="space-y-3">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {[
-                  ['Your photo', current.before],
-                  [current.design, current.after],
-                ].map(([label, src]) => (
-                  <figure key={label} className="m-0">
-                    <span className="frame block">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={src} alt={label} className="block w-full" />
-                    </span>
-                    <figcaption className="mt-1.5 text-[11px] text-[var(--muted)]">{label}</figcaption>
-                  </figure>
-                ))}
-              </div>
-              {current.preservation && (
-                <p className="text-[12px] text-[var(--muted)]">
-                  Architecture score{' '}
-                  <b style={{ color: current.preservation.passed ? 'var(--ok)' : 'var(--bad)' }}>
-                    {Math.round(current.preservation.score)}
-                  </b>{' '}
-                  — {current.preservation.passed ? 'no gross structural change detected' : 'flagged for review'}
-                </p>
-              )}
-              <a className="btn btn-ghost" href={current.after} download={`augusta-${designId}.jpg`}>
+          </div>
+        ) : current ? (
+          <div className="space-y-4">
+            <BeforeAfter
+              before={{ src: current.before, width: current.width, height: current.height }}
+              after={{ src: current.after, width: current.width, height: current.height }}
+              beforeLabel="Your photo"
+              afterLabel={`${current.design} visualization`}
+            />
+
+            <div className="flex flex-wrap items-center gap-3">
+              <a className="btn btn-primary" href={current.after} download={`augusta-${designId}.jpg`}>
                 Download JPEG
               </a>
+              {current.preservation && (
+                <span className="inline-flex items-center gap-2 text-[12.5px] text-[var(--muted)]">
+                  <span
+                    className="grid h-7 w-7 place-items-center rounded-full border text-[11px] font-bold tabular-nums"
+                    style={{
+                      borderColor: current.preservation.passed ? 'var(--ok)' : 'var(--bad)',
+                      color: current.preservation.passed ? 'var(--ok)' : 'var(--bad)',
+                    }}
+                  >
+                    {Math.round(current.preservation.score)}
+                  </span>
+                  {current.preservation.passed ? 'No gross structural change detected' : 'Flagged for review'}
+                </span>
+              )}
             </div>
-          ) : (
-            <div className="grid h-full place-items-center px-4 text-center">
-              <p className="max-w-[46ch] text-[12.5px] leading-relaxed text-[var(--muted)]">
-                {Object.keys(results).length > 0
-                  ? `${activeLabel} has not been rendered for this photo yet. Designs marked with a green dot are saved — pick one of those to see it again for free.`
-                  : 'Your render appears here. No roofline tracing — this is the unguided path, the same one a first upload gets in the field.'}
+          </div>
+        ) : (
+          <div className="card grid min-h-[420px] place-items-center p-8 text-center">
+            <div className="max-w-[44ch]">
+              <p className="text-[15px] font-semibold">
+                {rendered > 0 ? `${activeLabel} not rendered yet` : 'Your render appears here'}
+              </p>
+              <p className="mt-2 text-[13px] leading-relaxed text-[var(--muted)]">
+                {rendered > 0
+                  ? 'Designs marked with a green dot are already saved — pick one of those to see it again instantly, or render this one.'
+                  : 'Choose a photo and a design, then press render. No roofline tracing — this is the unguided path, the same one a first render gets in the field.'}
               </p>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );

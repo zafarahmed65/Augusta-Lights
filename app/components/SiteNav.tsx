@@ -51,12 +51,13 @@ export function SiteNav({
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-[1120px] items-center gap-4 px-5 py-3">
-        <a href="#top" className="flex shrink-0 items-baseline gap-2">
+        {/* The wordmark is the way back to the case study from anywhere. */}
+        <Link href="/" className="flex shrink-0 items-baseline gap-2" aria-label="Augusta Lights — case study">
           <span className="text-[15px] font-semibold tracking-tight">Augusta Lights</span>
           <span className="hidden text-[10px] font-semibold tracking-[0.16em] text-[var(--muted)] uppercase sm:inline">
             Visualizer
           </span>
-        </a>
+        </Link>
         {back && (
           <Link
             href={back.href}

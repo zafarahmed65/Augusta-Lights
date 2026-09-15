@@ -4,6 +4,24 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { asset, dimensions, srcSet } from '@/lib/gallery';
 
 /**
+ * Accepts either a gallery file name — resolved to its responsive sources — or a
+ * ready-made src such as a data URL, so the live page can show a real render in
+ * the same control the case study uses.
+ */
+export interface ImageSource {
+  src: string;
+  srcSet?: string;
+  width: number;
+  height: number;
+}
+
+function resolve(input: string | ImageSource): ImageSource {
+  if (typeof input !== 'string') return input;
+  const { w, h } = dimensions(input);
+  return { src: asset(input), srcSet: srcSet(input), width: w, height: h };
+}
+
+/**
  * Drag-to-wipe comparison — the most persuasive control in the demo, because it
  * is how a homeowner confirms "that's my house" before looking at the lights.
  *
@@ -17,8 +35,8 @@ export function BeforeAfter({
   afterLabel = 'Visualization',
   priority = false,
 }: {
-  before: string;
-  after: string;
+  before: string | ImageSource;
+  after: string | ImageSource;
   beforeLabel?: string;
   afterLabel?: string;
   priority?: boolean;
@@ -28,7 +46,9 @@ export function BeforeAfter({
   const [hinting, setHinting] = useState(false);
   const box = useRef<HTMLDivElement>(null);
   const hinted = useRef(false);
-  const { w, h } = dimensions(after);
+  const a = resolve(after);
+  const b = resolve(before);
+  const { width: w, height: h } = a;
 
   /**
    * Sweep the handle once when the comparison scrolls into view.
@@ -90,8 +110,8 @@ export function BeforeAfter({
       >
         {/* eslint-disable @next/next/no-img-element */}
         <img
-          src={asset(after)}
-          srcSet={srcSet(after)}
+          src={a.src}
+          srcSet={a.srcSet}
           sizes="(min-width: 1160px) 1080px, calc(100vw - 40px)"
           alt={afterLabel}
           width={w}
@@ -110,8 +130,8 @@ export function BeforeAfter({
           }}
         >
           <img
-            src={asset(before)}
-            srcSet={srcSet(before)}
+            src={b.src}
+            srcSet={b.srcSet}
             sizes="(min-width: 1160px) 1080px, calc(100vw - 40px)"
             alt={beforeLabel}
             width={w}

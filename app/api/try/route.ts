@@ -124,10 +124,13 @@ export async function POST(req: Request) {
         await notifyRender(visitor, design.label, true);
 
         const jpeg = (b: Buffer) => `data:image/jpeg;base64,${b.toString('base64')}`;
+        const heroMeta = await sharp(hero).metadata();
         send({
           done: true,
           before: jpeg(original),
           after: jpeg(hero),
+          width: heroMeta.width ?? 1600,
+          height: heroMeta.height ?? 1200,
           overlay: `data:image/png;base64,${master.report.overlay.toString('base64')}`,
           design: design.label,
           costUsd: Number((master.costUsd + lit.edit.costUsd).toFixed(3)),
