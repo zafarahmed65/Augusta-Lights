@@ -68,7 +68,10 @@ export default function JobPage({ params }: { params: Promise<{ id: string }> })
         {working && (
           <div className="card px-4 py-4">
             <div className="pulse text-[13px] font-medium">{job.step}…</div>
-            <div className="mt-3 space-y-1.5">
+            {/* The checklist only describes the initial render. Comparison sheets
+                report per-design steps, where a fixed list would sit unhighlighted
+                and read as stuck. */}
+            <div className="mt-3 space-y-1.5" hidden={!STEPS.includes(job.step)}>
               {STEPS.map((s) => {
                 const done = STEPS.indexOf(job.step) > STEPS.indexOf(s) || job.status === 'done';
                 const now = job.step === s;
