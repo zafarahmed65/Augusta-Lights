@@ -152,7 +152,9 @@ export default function Gallery() {
 
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <div>
-                <Frame file={alvarez.overlay} alt="Overlay showing invented structure in red where the vehicle stood" />
+                <div className="frame">
+                  <Frame file={alvarez.overlay} alt="Overlay showing invented structure in red where the vehicle stood" />
+                </div>
               </div>
               <div className="space-y-4">
                 <PreservationBadge
@@ -184,7 +186,9 @@ export default function Gallery() {
             title="Four options on one page"
             lede="A second downloadable JPEG to leave with the homeowner. All four tiles derive from the same dusk photograph, so the sky and lawn are byte-identical across them and only the lighting differs."
           >
-            <Frame file={payne.sheet} alt="Two by two comparison of four lighting designs on the same house" />
+            <div className="frame">
+              <Frame file={payne.sheet} alt="Two by two comparison of four lighting designs on the same house" />
+            </div>
             <a className="btn btn-ghost mt-4" href={`/gallery/${payne.sheet}`} download>
               Download the sheet
             </a>
@@ -198,7 +202,9 @@ export default function Gallery() {
           lede="Every render is compared against the original photograph and scored on how much of the building's structure came through intact. The number is reproducible, which matters to anyone who has been burned by a tool that quietly redesigned a customer's home."
         >
           <div className="grid gap-4 lg:grid-cols-2">
-            <Frame file={payne.overlay} alt="Edge comparison overlay, preserved structure shown in green" />
+            <div className="frame">
+              <Frame file={payne.overlay} alt="Edge comparison overlay, preserved structure shown in green" />
+            </div>
             <div className="space-y-4">
               <PreservationBadge score={payne.preservation.score} passed={payne.preservation.passed} />
               <p className="text-[13.5px] leading-relaxed text-[var(--muted)]">

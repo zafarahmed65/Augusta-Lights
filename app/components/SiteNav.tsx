@@ -49,7 +49,7 @@ export function SiteNav({
   }, [items]);
 
   return (
-    <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--bg)_88%,transparent)] backdrop-blur-md">
+    <header className="sticky top-0 z-30 border-b border-[var(--line)] bg-[color-mix(in_srgb,var(--surface)_86%,transparent)] backdrop-blur-md">
       <div className="mx-auto flex w-full max-w-[1120px] items-center gap-4 px-5 py-3">
         <a href="#top" className="flex shrink-0 items-baseline gap-2">
           <span className="text-[15px] font-semibold tracking-tight">Augusta Lights</span>
@@ -76,7 +76,7 @@ export function SiteNav({
                 className="rounded-lg px-2.5 py-1.5 text-[12px] whitespace-nowrap transition-colors"
                 style={{
                   color: active === item.id ? 'var(--accent)' : 'var(--muted)',
-                  background: active === item.id ? 'rgb(255 196 107 / 0.1)' : 'transparent',
+                  background: active === item.id ? 'var(--accent-soft)' : 'transparent',
                 }}
               >
                 {item.label}
@@ -88,7 +88,7 @@ export function SiteNav({
         {cta && (
           <Link
             href={cta.href}
-            className="ml-2 shrink-0 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[12px] font-semibold whitespace-nowrap text-[var(--accent-ink)]"
+            className="ml-2 shrink-0 rounded-lg bg-[var(--ink)] px-3.5 py-2 text-[12px] font-semibold whitespace-nowrap text-[var(--ink-contrast)]"
           >
             {cta.label}
           </Link>

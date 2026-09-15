@@ -77,8 +77,8 @@ export function BeforeAfter({
     <figure className="m-0">
       <div
         ref={box}
-        className="relative touch-none overflow-hidden rounded-2xl border border-[var(--line)] select-none"
-        style={{ aspectRatio: `${w} / ${h}`, boxShadow: 'var(--shadow)' }}
+        className="frame relative touch-none select-none"
+        style={{ aspectRatio: `${w} / ${h}` }}
         onPointerDown={(e) => {
           e.currentTarget.setPointerCapture(e.pointerId);
           setDragging(true);
@@ -123,10 +123,10 @@ export function BeforeAfter({
         </div>
         {/* eslint-enable @next/next/no-img-element */}
 
-        <span className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/65 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] backdrop-blur-sm">
+        <span className="pointer-events-none absolute bottom-3 left-3 rounded-md bg-black/65 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] text-white backdrop-blur-sm">
           BEFORE
         </span>
-        <span className="pointer-events-none absolute right-3 bottom-3 rounded-md bg-black/65 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] backdrop-blur-sm">
+        <span className="pointer-events-none absolute right-3 bottom-3 rounded-md bg-black/65 px-2 py-1 text-[10px] font-semibold tracking-[0.12em] text-white backdrop-blur-sm">
           AFTER
         </span>
 

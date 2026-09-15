@@ -36,7 +36,7 @@ export function Frame({
       loading={priority ? 'eager' : 'lazy'}
       decoding="async"
       fetchPriority={priority ? 'high' : 'auto'}
-      className={`block w-full bg-[var(--surface-2)] ${className}`}
+      className={`block w-full ${className}`}
       style={{ aspectRatio: `${w} / ${h}` }}
     />
   );

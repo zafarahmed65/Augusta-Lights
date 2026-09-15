@@ -15,8 +15,8 @@ export function BriefChecklist() {
               <span
                 className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-bold"
                 style={{
-                  background: met ? 'rgb(74 222 128 / 0.14)' : 'rgb(255 196 107 / 0.16)',
-                  color: met ? 'var(--ok)' : 'var(--accent)',
+                  background: met ? '#e7f6ec' : 'var(--accent-soft)',
+                  color: met ? '#116434' : 'var(--accent)',
                 }}
                 aria-hidden="true"
               >

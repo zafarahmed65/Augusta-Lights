@@ -25,8 +25,8 @@ export function VariantPicker({ variants, houseName }: { variants: GalleryVarian
   return (
     <div className="space-y-3">
       <div
-        className="relative overflow-hidden rounded-2xl border border-[var(--line)]"
-        style={{ aspectRatio: `${w} / ${h}`, boxShadow: 'var(--shadow)' }}
+        className="frame relative"
+        style={{ aspectRatio: `${w} / ${h}` }}
       >
         {variants.map((v, i) => (
           // eslint-disable-next-line @next/next/no-img-element
@@ -47,7 +47,7 @@ export function VariantPicker({ variants, houseName }: { variants: GalleryVarian
         ))}
         {/* Top-left: the residence name and design label are composited into the
             bottom-left of every render, so a badge there collides with them. */}
-        <div className="pointer-events-none absolute top-3 left-3 rounded-md bg-black/65 px-2.5 py-1.5 backdrop-blur-sm">
+        <div className="pointer-events-none absolute top-3 left-3 rounded-md bg-black/65 px-2.5 py-1.5 text-white backdrop-blur-sm">
           <div className="text-[12px] font-semibold">{current.label}</div>
           {design && (
             <div className="text-[10px] text-white/70">

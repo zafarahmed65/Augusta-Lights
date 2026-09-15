@@ -123,7 +123,7 @@ export function TryIt({ needsPasscode }: { needsPasscode: boolean }) {
           />
           <label
             htmlFor="try-photo"
-            className="flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[var(--line-strong)] bg-[var(--surface-2)]"
+            className="flex h-40 cursor-pointer items-center justify-center overflow-hidden rounded-xl border border-dashed border-[var(--line-strong)] bg-[var(--surface-2)] transition-colors hover:border-[var(--accent)] hover:bg-[var(--accent-soft)]"
             style={busy ? { opacity: 0.5, pointerEvents: 'none' } : undefined}
           >
             {preview ? (
@@ -249,8 +249,10 @@ export function TryIt({ needsPasscode }: { needsPasscode: boolean }) {
                   [current.design, current.after],
                 ].map(([label, src]) => (
                   <figure key={label} className="m-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={src} alt={label} className="w-full rounded-lg border border-[var(--line)]" />
+                    <span className="frame block">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt={label} className="block w-full" />
+                    </span>
                     <figcaption className="mt-1.5 text-[11px] text-[var(--muted)]">{label}</figcaption>
                   </figure>
                 ))}
