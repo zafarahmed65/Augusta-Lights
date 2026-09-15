@@ -36,6 +36,15 @@ const MIN_TILE_EDGES = 60;
  */
 const MIN_TILE_INVENTED = 220;
 /**
+ * Connected invented/lost edge runs smaller than this are discarded as texture.
+ *
+ * Lighting a window creates a scatter of short new edges inside an opening whose
+ * outline is unchanged — that is the feature working, not a redesign. The edits
+ * the client actually rejects (an added window, an invented roof section) appear
+ * as long connected contours. Filtering by component size separates the two.
+ */
+const MIN_STRUCTURAL_COMPONENT = 140;
+/**
  * Worst structural tile must clear this. A global average cannot catch one added
  * window in a whole facade — locally it is catastrophic, globally it is noise —
  * so the local floor is what actually enforces the client's requirement.
@@ -219,6 +228,45 @@ async function skyMask(original: Buffer, width: number, height: number): Promise
   return sky;
 }
 
+/**
+ * Zeroes 8-connected components smaller than `minSize`, keeping only changes at
+ * architectural scale. Iterative flood fill — the recursive form blows the stack
+ * on a full-width roofline contour.
+ */
+function dropSmallComponents(src: Uint8Array, width: number, height: number, minSize: number): Uint8Array {
+  const out = new Uint8Array(src);
+  const seen = new Uint8Array(src.length);
+  const stack: number[] = [];
+  for (let start = 0; start < src.length; start++) {
+    if (!out[start] || seen[start]) continue;
+    stack.length = 0;
+    stack.push(start);
+    seen[start] = 1;
+    const component: number[] = [];
+    while (stack.length) {
+      const i = stack.pop()!;
+      component.push(i);
+      const x = i % width;
+      const y = (i / width) | 0;
+      for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+          if (!dx && !dy) continue;
+          const nx = x + dx;
+          const ny = y + dy;
+          if (nx < 0 || ny < 0 || nx >= width || ny >= height) continue;
+          const n = ny * width + nx;
+          if (out[n] && !seen[n]) {
+            seen[n] = 1;
+            stack.push(n);
+          }
+        }
+      }
+    }
+    if (component.length < minSize) for (const i of component) out[i] = 0;
+  }
+  return out;
+}
+
 function countBits(a: Uint8Array): number {
   let n = 0;
   for (let i = 0; i < a.length; i++) n += a[i];
@@ -277,9 +325,17 @@ export async function verifyPreservation(
   threshold = DEFAULT_THRESHOLD,
   localThreshold = DEFAULT_LOCAL_THRESHOLD,
 ): Promise<PreservationReport> {
-  const meta = await sharp(original).metadata();
-  const width = WORK_WIDTH;
-  const height = Math.max(1, Math.round((meta.height! / meta.width!) * WORK_WIDTH));
+  const [metaA, metaB] = await Promise.all([sharp(original).metadata(), sharp(edited).metadata()]);
+
+  // Compare at the NARROWER of the two images, capped at WORK_WIDTH.
+  //
+  // Draft renders come back at 512px against a 1280px original. Upsampling the
+  // render to meet the original cannot restore stucco, shingle and siding detail,
+  // so that texture reads as "lost structure" and tanks the score on a render
+  // whose architecture is actually intact. Measuring at the lower resolution
+  // compares like with like and leaves the score measuring geometry.
+  const width = Math.min(WORK_WIDTH, metaA.width!, metaB.width!);
+  const height = Math.max(1, Math.round((metaA.height! / metaA.width!) * width));
 
   const sky = await skyMask(original, width, height);
   const ground = new Uint8Array(width * height);
@@ -310,13 +366,19 @@ export async function verifyPreservation(
     if (edgesA[i] && !dilB[i] && ground[i]) lost[i] = 1;
   }
 
+  // Only architectural-scale changes count. Without this the warm window glow —
+  // an explicitly requested feature — reads as invented structure and sinks the
+  // score on an otherwise perfect render.
+  const inventedBig = dropSmallComponents(invented, width, height, MIN_STRUCTURAL_COMPONENT);
+  const lostBig = dropSmallComponents(lost, width, height, MIN_STRUCTURAL_COMPONENT);
+
   const m = countBits(matched);
-  const inv = countBits(invented);
-  const lo = countBits(lost);
+  const inv = countBits(inventedBig);
+  const lo = countBits(lostBig);
   const edgeIoU = m + inv + lo === 0 ? 1 : m / (m + inv + lo);
   const globalScore = Math.round(edgeIoU * 1000) / 10;
 
-  const worst = worstTile(matched, invented, lost, edgesA, width, height);
+  const worst = worstTile(matched, inventedBig, lostBig, edgesA, width, height);
   const localScore = worst?.score ?? 100;
 
   // Headline number is the global agreement, but a single ruined region fails
@@ -327,7 +389,7 @@ export async function verifyPreservation(
     score: globalScore,
     passed,
     threshold,
-    overlay: await buildOverlay(edited, width, height, matched, invented, lost, worst),
+    overlay: await buildOverlay(edited, width, height, matched, inventedBig, lostBig, worst),
     detail: {
       edgeIoU,
       originalEdgePixels: countBits(edgesA),

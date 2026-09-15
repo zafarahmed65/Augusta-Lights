@@ -68,10 +68,11 @@ Current results on the synthetic fixture:
 | Case | Global | Worst region | Verdict |
 |---|---|---|---|
 | identity | 100 | 100 | pass |
-| tone-only regrade | 99.8 | 86.3 | pass |
+| tone-only regrade | 100 | 100 | pass |
 | JPEG + resize round-trip | 100 | 100 | pass |
-| one window added | 90.3 | **0** | **fail** |
+| one window added | 92.8 | **0** | **fail** |
 | roof gable invented | 91.4 | **0** | **fail** |
+| *real draft render, house-01* | *97.4* | *52.8* | *pass* |
 
 Note the last two rows: a global average barely moves when a window is fabricated, which is
 why the check fails on the *worst region* rather than the mean.
