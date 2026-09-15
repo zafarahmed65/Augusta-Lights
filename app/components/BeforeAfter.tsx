@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { asset, dimensions, srcSet } from '@/lib/gallery';
 
 /**
@@ -25,12 +25,51 @@ export function BeforeAfter({
 }) {
   const [pct, setPct] = useState(50);
   const [dragging, setDragging] = useState(false);
+  const [hinting, setHinting] = useState(false);
   const box = useRef<HTMLDivElement>(null);
+  const hinted = useRef(false);
   const { w, h } = dimensions(after);
+
+  /**
+   * Sweep the handle once when the comparison scrolls into view.
+   *
+   * A static divider down the middle of a photograph does not announce itself as
+   * draggable — people read it as a design element and move on, missing the whole
+   * point of the comparison. One short sweep on first sight shows the image
+   * changing underneath it. It runs once, never during a drag, and not at all for
+   * anyone who asked for reduced motion.
+   */
+  useEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting || hinted.current) return;
+        hinted.current = true;
+        observer.disconnect();
+
+        const frames: [number, number][] = [
+          [260, 66],
+          [560, 36],
+          [900, 50],
+        ];
+        setHinting(true);
+        const timers = frames.map(([at, value]) => setTimeout(() => setPct(value), at));
+        timers.push(setTimeout(() => setHinting(false), 1250));
+      },
+      { threshold: 0.45 },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   const moveTo = useCallback((clientX: number) => {
     const rect = box.current?.getBoundingClientRect();
     if (!rect) return;
+    hinted.current = true;
+    setHinting(false);
     setPct(Math.min(100, Math.max(0, ((clientX - rect.left) / rect.width) * 100)));
   }, []);
 
@@ -63,7 +102,13 @@ export function BeforeAfter({
           className="block h-full w-full object-cover"
         />
         {/* clip-path keeps the before image at full width so it never squashes */}
-        <div className="absolute inset-0" style={{ clipPath: `inset(0 ${100 - pct}% 0 0)` }}>
+        <div
+          className="absolute inset-0"
+          style={{
+            clipPath: `inset(0 ${100 - pct}% 0 0)`,
+            transition: hinting ? 'clip-path 320ms cubic-bezier(.4,0,.2,1)' : undefined,
+          }}
+        >
           <img
             src={asset(before)}
             srcSet={srcSet(before)}
@@ -85,7 +130,10 @@ export function BeforeAfter({
           AFTER
         </span>
 
-        <div className="pointer-events-none absolute inset-y-0 w-0.5 bg-white/95" style={{ left: `${pct}%` }} />
+        <div
+          className="pointer-events-none absolute inset-y-0 w-0.5 bg-white/95"
+          style={{ left: `${pct}%`, transition: hinting ? 'left 320ms cubic-bezier(.4,0,.2,1)' : undefined }}
+        />
         <button
           type="button"
           role="slider"
@@ -98,7 +146,11 @@ export function BeforeAfter({
             if (e.key === 'ArrowRight') setPct((p) => Math.min(100, p + 4));
           }}
           className="absolute top-1/2 grid h-11 w-11 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full bg-white text-black shadow-lg"
-          style={{ left: `${pct}%`, cursor: 'ew-resize' }}
+          style={{
+            left: `${pct}%`,
+            cursor: 'ew-resize',
+            transition: hinting ? 'left 320ms cubic-bezier(.4,0,.2,1)' : undefined,
+          }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
             <path d="M9 6 4 12l5 6M15 6l5 6-5 6" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />

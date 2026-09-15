@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Rail } from './Rail';
 
 export interface NavItem {
   id: string;
@@ -45,22 +46,24 @@ export function SiteNav({ items }: { items: NavItem[] }) {
             Visualizer
           </span>
         </a>
-        <nav aria-label="Sections" className="rail rail-fade ml-auto -mr-1 py-0.5">
-          {items.map((item) => (
-            <a
-              key={item.id}
-              href={`#${item.id}`}
-              aria-current={active === item.id ? 'true' : undefined}
-              className="rounded-lg px-2.5 py-1.5 text-[12px] whitespace-nowrap transition-colors"
-              style={{
-                color: active === item.id ? 'var(--accent)' : 'var(--muted)',
-                background: active === item.id ? 'rgb(255 196 107 / 0.1)' : 'transparent',
-              }}
-            >
-              {item.label}
-            </a>
-          ))}
-        </nav>
+        <div className="ml-auto min-w-0">
+          <Rail ariaLabel="Sections" className="py-0.5">
+            {items.map((item) => (
+              <a
+                key={item.id}
+                href={`#${item.id}`}
+                aria-current={active === item.id ? 'true' : undefined}
+                className="rounded-lg px-2.5 py-1.5 text-[12px] whitespace-nowrap transition-colors"
+                style={{
+                  color: active === item.id ? 'var(--accent)' : 'var(--muted)',
+                  background: active === item.id ? 'rgb(255 196 107 / 0.1)' : 'transparent',
+                }}
+              >
+                {item.label}
+              </a>
+            ))}
+          </Rail>
+        </div>
       </div>
     </header>
   );

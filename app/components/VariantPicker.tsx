@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { PatternSwatch } from './PatternSwatch';
 import { ALL_DESIGNS } from '@/lib/designs';
 import { asset, dimensions, srcSet, type GalleryVariant } from '@/lib/gallery';
+import { Rail } from './Rail';
 
 /**
  * Same house, every lighting option.
@@ -57,8 +58,8 @@ export function VariantPicker({ variants, houseName }: { variants: GalleryVarian
         </div>
       </div>
 
-      {/* Rail on phones, wrapping grid once there is room for it. */}
-      <div className="rail rail-fade rail-fade-sm-off sm:flex-wrap sm:overflow-visible" role="group" aria-label="Lighting designs">
+      {/* Rail on phones; the Rail component drops its affordances once the chips fit. */}
+      <Rail ariaLabel="Lighting designs" className="sm:flex-wrap sm:overflow-visible">
         {variants.map((v, i) => {
           const d = ALL_DESIGNS.find((x) => x.id === v.designId);
           return (
@@ -74,7 +75,7 @@ export function VariantPicker({ variants, houseName }: { variants: GalleryVarian
             </button>
           );
         })}
-      </div>
+      </Rail>
     </div>
   );
 }

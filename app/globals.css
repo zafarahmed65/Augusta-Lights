@@ -112,14 +112,19 @@ body {
 .rail > * { scroll-snap-align: start; flex: 0 0 auto; }
 
 /*
- * Fade the right edge so a rail that runs off screen reads as scrollable rather
- * than as content that has been cut off. Only where the rail actually scrolls —
- * the design chips wrap into a grid from the `sm` breakpoint up.
+ * Edge fades, applied only on the side that actually has more content — the Rail
+ * component measures overflow and toggles these. A permanent fade would imply
+ * scrollable when everything already fits.
  */
-.rail-fade {
-  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 32px), transparent 100%);
-  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 32px), transparent 100%);
+.rail-fade-right {
+  -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 44px), transparent 100%);
+  mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 44px), transparent 100%);
 }
-@media (min-width: 640px) {
-  .rail-fade-sm-off { -webkit-mask-image: none; mask-image: none; }
+.rail-fade-left {
+  -webkit-mask-image: linear-gradient(to left, #000 0, #000 calc(100% - 44px), transparent 100%);
+  mask-image: linear-gradient(to left, #000 0, #000 calc(100% - 44px), transparent 100%);
+}
+.rail-fade-left.rail-fade-right {
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
+  mask-image: linear-gradient(to right, transparent 0, #000 44px, #000 calc(100% - 44px), transparent 100%);
 }
