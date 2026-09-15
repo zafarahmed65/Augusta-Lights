@@ -1,8 +1,7 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
-import path from 'node:path';
+import { readFile } from 'node:fs/promises';
 import sharp from 'sharp';
 import { editImage as editViaFal, isMock } from './fal';
+import { recordSpend, totalSpend } from './spend';
 import { editImageViaOpenRouter } from './openrouter';
 import type { EditRequest, EditResult } from '../types';
 
@@ -21,26 +20,6 @@ export type Provider = 'openrouter' | 'fal';
 
 export const provider = (): Provider =>
   (process.env.PROVIDER as Provider) ?? (process.env.OPENROUTER_API_KEY ? 'openrouter' : 'fal');
-
-const SPEND_FILE = path.join(process.cwd(), 'out', '.spend.json');
-
-async function record(entry: { model: string; costUsd: number; provider: Provider }) {
-  await mkdir(path.dirname(SPEND_FILE), { recursive: true });
-  let log: { totalUsd: number; calls: unknown[] } = { totalUsd: 0, calls: [] };
-  if (existsSync(SPEND_FILE)) {
-    try {
-      log = JSON.parse(await readFile(SPEND_FILE, 'utf8'));
-    } catch {
-      /* a corrupt log must never block a render */
-    }
-  }
-  log.totalUsd = Number((log.totalUsd + entry.costUsd).toFixed(4));
-  log.calls.push({ at: new Date().toISOString(), ...entry });
-  await writeFile(SPEND_FILE, JSON.stringify(log, null, 2));
-  console.log(
-    `  $ ${entry.costUsd.toFixed(4)} (${entry.model.split('/').pop()} via ${entry.provider}) — total $${log.totalUsd.toFixed(2)}`,
-  );
-}
 
 async function mockEdit(req: EditRequest): Promise<EditResult> {
   const source = req.images[0];
@@ -75,8 +54,9 @@ export async function editImage(req: EditRequest): Promise<EditResult> {
   if (which === 'fal') return editViaFal(req);
 
   const result = await editImageViaOpenRouter(req);
-  await record({ model: result.model, costUsd: result.costUsd, provider: which });
+  await recordSpend({ model: result.model, costUsd: result.costUsd, provider: which });
   return result;
 }
 
-export { isMock, totalSpend } from './fal';
+export { isMock } from './fal';
+export { totalSpend };

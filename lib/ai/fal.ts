@@ -1,9 +1,9 @@
 import { fal } from '@fal-ai/client';
-import { readFile, writeFile, mkdir } from 'node:fs/promises';
-import { existsSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
 import type { EditRequest, EditResult, Resolution } from '../types';
+import { recordSpend, totalSpend as readTotal } from './spend';
 
 /**
  * Single choke point for every paid API call.
@@ -21,7 +21,6 @@ const PRICING: Record<string, Partial<Record<Resolution, number>>> = {
   [FINAL_MODEL]: { '1K': 0.15, '2K': 0.15, '4K': 0.3 },
 };
 
-const SPEND_FILE = path.join(process.cwd(), 'out', '.spend.json');
 
 /**
  * Hard ceiling on one render. fal.subscribe has no timeout of its own, so a
@@ -62,29 +61,9 @@ export function priceOf(model: string, resolution: Resolution): number {
   return PRICING[model]?.[resolution] ?? 0;
 }
 
-async function recordSpend(model: string, resolution: Resolution, costUsd: number) {
-  await mkdir(path.dirname(SPEND_FILE), { recursive: true });
-  let log: { totalUsd: number; calls: unknown[] } = { totalUsd: 0, calls: [] };
-  if (existsSync(SPEND_FILE)) {
-    try {
-      log = JSON.parse(await readFile(SPEND_FILE, 'utf8'));
-    } catch {
-      /* corrupt log should never block a render */
-    }
-  }
-  log.totalUsd = Number((log.totalUsd + costUsd).toFixed(4));
-  log.calls.push({ at: new Date().toISOString(), model, resolution, costUsd });
-  await writeFile(SPEND_FILE, JSON.stringify(log, null, 2));
-  console.log(`  $ ${costUsd.toFixed(3)} (${model.split('/')[1]} @${resolution}) — session total $${log.totalUsd.toFixed(2)}`);
-}
-
+/** Spend lives in one module so it works on a read-only serverless filesystem. */
 export async function totalSpend(): Promise<number> {
-  if (!existsSync(SPEND_FILE)) return 0;
-  try {
-    return JSON.parse(await readFile(SPEND_FILE, 'utf8')).totalUsd ?? 0;
-  } catch {
-    return 0;
-  }
+  return readTotal();
 }
 
 let configured = false;
@@ -153,7 +132,7 @@ export async function editImage(req: EditRequest): Promise<EditResult> {
 
   const buffer = Buffer.from(await (await fetch(image.url)).arrayBuffer());
   const costUsd = priceOf(model, resolution);
-  await recordSpend(model, resolution, costUsd);
+  await recordSpend({ model, costUsd, provider: 'fal', resolution });
 
   const meta = await sharp(buffer).metadata();
   return {
