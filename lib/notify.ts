@@ -21,6 +21,20 @@ export interface VisitInfo {
 const configured = () =>
   Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS && process.env.NOTIFY_EMAIL);
 
+/**
+ * Which notification settings this deployment can see. Names only, never values.
+ *
+ * Vercel binds environment variables at deploy time, so adding them without
+ * redeploying leaves the function blind to them — and because a missing config
+ * exits silently by design, that looks identical to "email is broken".
+ */
+export function notifyStatus() {
+  const missing = (['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS', 'NOTIFY_EMAIL'] as const).filter(
+    (k) => !process.env[k],
+  );
+  return { configured: missing.length === 0, missing };
+}
+
 function transport() {
   const port = Number(process.env.SMTP_PORT ?? 465);
   return nodemailer.createTransport({
