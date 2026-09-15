@@ -39,14 +39,14 @@
           "label": "Blue / White",
           "product": "c9",
           "file": "payne-blue-white.jpg",
-          "bulbCount": 0
+          "bulbCount": 50
         },
         {
           "designId": "red-green",
           "label": "Red / Green",
           "product": "c9",
           "file": "payne-red-green.jpg",
-          "bulbCount": 0
+          "bulbCount": 50
         },
         {
           "designId": "omni-warm",
@@ -199,5 +199,5 @@
     1024,
     1536
   ],
-  "builtAt": "2026-09-15T08:28:55.439Z"
+  "builtAt": "2026-09-15T08:32:08.730Z"
 }

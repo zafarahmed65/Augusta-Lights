@@ -4,6 +4,8 @@ import { PreservationBadge } from './components/PreservationBadge';
 import { Section } from './components/Section';
 import { SiteNav, type NavItem } from './components/SiteNav';
 import { VariantPicker } from './components/VariantPicker';
+import { BriefChecklist } from './components/BriefChecklist';
+import { SpecRow } from './components/SpecRow';
 import { byProduct, houseBySlug, HOUSES } from '@/lib/gallery';
 
 /**
@@ -21,6 +23,7 @@ const NAV: NavItem[] = [
   { id: 'cleanup', label: 'Vehicles' },
   { id: 'compare', label: 'Compare' },
   { id: 'quality', label: 'Quality control' },
+  { id: 'brief', label: 'Your brief' },
 ];
 
 function Stat({ value, label }: { value: string; label: string }) {
@@ -51,9 +54,10 @@ export default function Gallery() {
             One photo of the house. A rendering they can picture.
           </h1>
           <p className="mt-4 max-w-[62ch] text-[15px] leading-relaxed text-[var(--muted)] sm:text-[16px]">
-            A salesperson photographs the home, picks a design, and gets a dusk visualization of
-            the installation — with the customer&apos;s actual house left intact. Everything on this
-            page came out of the pipeline from a single daytime photograph.
+            While the homeowner thinks it over, the GM photographs the house from the truck,
+            picks a design, and has a dusk visualization to text over before the conversation
+            cools. Everything on this page came out of the pipeline from one daytime photograph —
+            the customer&apos;s actual home, left intact.
           </p>
         </div>
 
@@ -87,6 +91,14 @@ export default function Gallery() {
             lede="SMD C9 bulbs on the front-facing roofline at 15-inch spacing. Multicolour designs use repeating groups — two red then two white — because that is how the installation is actually run. Switch between them: only the lights change."
           >
             <VariantPicker variants={christmas} houseName={payne.lastName} />
+            <SpecRow
+              specs={[
+                ['Bulb', 'SMD C9 LED'],
+                ['Spacing', '15 inches on centre'],
+                ['Coverage', 'Front-facing roofline only'],
+                ['Pattern', 'Repeating groups, e.g. 2 red / 2 white'],
+              ]}
+            />
           </Section>
         )}
 
@@ -98,6 +110,14 @@ export default function Gallery() {
             lede="A different product, and it has to read as one. Fixtures sit recessed in the eave and wash light down the façade rather than appearing as exposed bulbs on the roofline."
           >
             <VariantPicker variants={permanent} houseName={payne.lastName} />
+            <SpecRow
+              specs={[
+                ['Fixture', 'Omni architectural'],
+                ['Spacing', '8 inches on centre'],
+                ['Effect', 'Vertical wall wash down the façade'],
+                ['Options', 'Whites, RGB and paired colours'],
+              ]}
+            />
           </Section>
         )}
 
@@ -196,9 +216,26 @@ export default function Gallery() {
           </ol>
         </Section>
 
-        <footer className="border-t border-[var(--line)] pt-6 text-[11.5px] leading-relaxed text-[var(--muted)]">
-          Prototype for Augusta Lights. Test photographs are licensed stock, not customer
-          properties. Renders are 2048px JPEGs produced by the pipeline in this repository.
+        <Section
+          id="brief"
+          eyebrow="Against your brief"
+          title="The eight things the prototype had to show"
+          lede="Taken from your own list, in your wording. Seven are demonstrated outright; one is demonstrated with a limit worth knowing about before it surprises a GM in someone's driveway. Each links to the evidence above."
+        >
+          <BriefChecklist />
+        </Section>
+
+        <footer className="border-t border-[var(--line)] pt-6">
+          <p className="max-w-[70ch] text-[12px] leading-relaxed text-[var(--muted)]">
+            Prototype for Augusta Lights. The houses shown are licensed stock photographs, not
+            customer properties — running this on your own difficult set is the obvious next step.
+            Every image is a 2048px JPEG produced by the pipeline in this repository; nothing on
+            this page is hand-retouched.
+          </p>
+          <p className="mt-3 max-w-[70ch] text-[12px] leading-relaxed text-[var(--muted)]">
+            This page is a static gallery of finished work. It makes no API calls and holds no
+            keys, so opening or sharing it costs nothing.
+          </p>
         </footer>
       </main>
     </>
