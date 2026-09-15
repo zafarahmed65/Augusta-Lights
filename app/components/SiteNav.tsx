@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { Rail } from './Rail';
 
@@ -15,7 +16,17 @@ export interface NavItem {
  * them and lets them jump straight to the part they care about. IntersectionObserver
  * rather than scroll maths: it stays accurate at any viewport height.
  */
-export function SiteNav({ items }: { items: NavItem[] }) {
+export function SiteNav({
+  items = [],
+  cta,
+  back,
+}: {
+  items?: NavItem[];
+  /** Right-hand call to action, e.g. the live upload page. */
+  cta?: { href: string; label: string };
+  /** Shown instead of section links on pages that have no sections. */
+  back?: { href: string; label: string };
+}) {
   const [active, setActive] = useState(items[0]?.id);
 
   useEffect(() => {
@@ -46,6 +57,15 @@ export function SiteNav({ items }: { items: NavItem[] }) {
             Visualizer
           </span>
         </a>
+        {back && (
+          <Link
+            href={back.href}
+            className="ml-auto shrink-0 rounded-lg px-2.5 py-1.5 text-[12px] whitespace-nowrap text-[var(--muted)] transition-colors hover:text-[var(--text)]"
+          >
+            ‹ {back.label}
+          </Link>
+        )}
+        {items.length > 0 && (
         <div className="ml-auto min-w-0">
           <Rail ariaLabel="Sections" className="py-0.5">
             {items.map((item) => (
@@ -64,6 +84,15 @@ export function SiteNav({ items }: { items: NavItem[] }) {
             ))}
           </Rail>
         </div>
+        )}
+        {cta && (
+          <Link
+            href={cta.href}
+            className="ml-2 shrink-0 rounded-lg bg-[var(--accent)] px-3 py-1.5 text-[12px] font-semibold whitespace-nowrap text-[var(--accent-ink)]"
+          >
+            {cta.label}
+          </Link>
+        )}
       </div>
     </header>
   );

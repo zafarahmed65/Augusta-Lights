@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { BeforeAfter } from './components/BeforeAfter';
 import { Frame } from './components/Frame';
 import { PreservationBadge } from './components/PreservationBadge';
@@ -6,7 +7,6 @@ import { SiteNav, type NavItem } from './components/SiteNav';
 import { VariantPicker } from './components/VariantPicker';
 import { BriefChecklist } from './components/BriefChecklist';
 import { SpecRow } from './components/SpecRow';
-import { TryIt } from './components/TryIt';
 import { byProduct, houseBySlug, HOUSES } from '@/lib/gallery';
 
 /**
@@ -18,7 +18,6 @@ import { byProduct, houseBySlug, HOUSES } from '@/lib/gallery';
  */
 
 const NAV: NavItem[] = [
-  { id: 'try', label: 'Try your photo' },
   { id: 'proof', label: 'Before / after' },
   { id: 'christmas', label: 'Christmas' },
   { id: 'permanent', label: 'Permanent' },
@@ -47,11 +46,11 @@ export default function Gallery() {
 
   return (
     <>
-      <SiteNav items={NAV} />
+      <SiteNav items={NAV} cta={{ href: '/try', label: 'Try your photo' }} />
 
       <main id="top" className="mx-auto w-full max-w-[1120px] px-5 pb-20">
         <div className="pt-10 pb-8 sm:pt-14">
-          <p className="label">Lighting visualizer · prototype</p>
+          <p className="label">Case study · every image produced in advance</p>
           <h1 className="mt-3 max-w-[17ch] text-[32px] leading-[1.08] font-semibold tracking-tight sm:text-[46px]">
             One photo of the house. A rendering they can picture.
           </h1>
@@ -61,20 +60,19 @@ export default function Gallery() {
             cools. Everything on this page came out of the pipeline from one daytime photograph —
             the customer&apos;s actual home, left intact.
           </p>
-        </div>
 
-        <section id="try" className="scroll-mt-20 pb-10">
-          <p className="label">Try it on your own house</p>
-          <h2 className="mt-2 text-[21px] font-semibold tracking-tight sm:text-[26px]">
-            Upload a photo and watch it run
-          </h2>
-          <p className="mt-2 mb-4 max-w-[62ch] text-[13.5px] leading-relaxed text-[var(--muted)]">
-            The gallery below shows what the pipeline produces. This runs it live on a photograph
-            it has never seen, so none of it is cherry-picked. No roofline tracing — an uploaded
-            photo takes the unguided path, exactly as a first render would in the field.
-          </p>
-          <TryIt needsPasscode={Boolean(process.env.TRY_PASSCODE)} />
-        </section>
+          <div className="mt-6 flex flex-col gap-3 rounded-xl border border-[var(--line)] bg-[var(--surface)] p-4 sm:flex-row sm:items-center">
+            <p className="flex-1 text-[13px] leading-relaxed text-[var(--muted)]">
+              <span className="font-semibold text-[var(--text)]">This page is a case study.</span>{' '}
+              Every render below was produced in advance and is served as a static image — opening
+              or sharing this page runs nothing and costs nothing. To watch the pipeline work on a
+              photograph it has never seen, use the live page.
+            </p>
+            <Link href="/try" className="btn btn-primary shrink-0">
+              Try your own photo →
+            </Link>
+          </div>
+        </div>
 
         {/* The slider sits directly under the headline rather than below a stats
             block: on a laptop the fold lands around 860px, and a visual demo that
