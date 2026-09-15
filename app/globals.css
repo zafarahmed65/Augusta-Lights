@@ -1,26 +1,84 @@
 @import "tailwindcss";
 
+/*
+ * Dark by default: the product is night lighting, the GM is often in a vehicle at
+ * dusk, and a dark ground makes the renders read the way they will on a phone
+ * when the customer opens the text message.
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --bg: #0b0d12;
+  --surface: #141821;
+  --surface-2: #1c2130;
+  --line: #2a3040;
+  --text: #eef1f7;
+  --muted: #98a1b4;
+  --accent: #ffc46b;
+  --accent-ink: #1a1205;
+  --ok: #4ade80;
+  --warn: #fbbf24;
+  --bad: #f87171;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html, body {
+  background: var(--bg);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Helvetica Neue', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  /* Safe-area padding so controls clear the home indicator when installed to the
+     home screen, which is how the client intends to use this. */
+  padding-bottom: env(safe-area-inset-bottom);
 }
+
+.label {
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.field {
+  width: 100%;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 12px 14px;
+  color: var(--text);
+  font-size: 16px; /* 16px minimum stops iOS Safari zooming on focus */
+}
+
+.field:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px 18px;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+
+.btn-primary { background: var(--accent); color: var(--accent-ink); }
+.btn-ghost { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); }
+.btn:disabled { opacity: 0.45; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pulse { animation: pulse 1.6s ease-in-out infinite; }
+}
+@keyframes pulse { 0%, 100% { opacity: 1 } 50% { opacity: 0.45 } }
