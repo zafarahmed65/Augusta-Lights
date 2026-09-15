@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "consistency": "tsx scripts/consistency.ts",
     "gallery": "tsx scripts/build-gallery.ts",
-    "grid": "tsx scripts/grid.ts"
+    "grid": "tsx scripts/grid.ts",
+    "batch": "tsx scripts/batch-test.ts"
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.1",

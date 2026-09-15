@@ -44,6 +44,28 @@ npm install
 cp .env.example .env.local   # add your FAL_KEY
 ```
 
+## Backends
+
+Two providers serve the same Gemini image models, selected by `PROVIDER`:
+
+| | Model used | Notes |
+|---|---|---|
+| `openrouter` | `google/gemini-3.1-flash-image`, `google/gemini-3-pro-image` | Default when `OPENROUTER_API_KEY` is set. Returns the **exact cost of every call**, so spend is measured rather than estimated. |
+| `fal` | `fal-ai/nano-banana-2`, `fal-ai/gemini-3-pro-image-preview` | Supports an explicit `RESOLUTION` tier. |
+
+`lib/ai/edit.ts` is the only module either backend is reached through, so every
+call lands in `out/.spend.json`.
+
+## Trying it on an unseen photo
+
+```bash
+npm run batch -- h2-modern-brick h4-yellow-porch --design=warm-white
+```
+
+Runs whole photographs through the dusk pass (and optionally lighting) and reports
+the preservation score for each. One attempt per photo, deliberately: it measures
+how often the first pass is good enough rather than how good a retry can get.
+
 ## The demo
 
 The deployed page is a **static gallery** — finished work, not a live generator. There is no

@@ -1,4 +1,4 @@
-import { editImage } from './fal';
+import { editImage } from './edit';
 import { CLEANUP_PROMPT, CLEANUP_SYSTEM, MASTER_PROMPT, MASTER_PROMPT_PRECLEANED, MASTER_PROMPT_STRICT, MASTER_SYSTEM } from './prompts';
 import { verifyPreservation } from '../image/verify';
 import type { EditResult, PreservationReport } from '../types';

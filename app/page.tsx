@@ -6,6 +6,7 @@ import { SiteNav, type NavItem } from './components/SiteNav';
 import { VariantPicker } from './components/VariantPicker';
 import { BriefChecklist } from './components/BriefChecklist';
 import { SpecRow } from './components/SpecRow';
+import { TryIt } from './components/TryIt';
 import { byProduct, houseBySlug, HOUSES } from '@/lib/gallery';
 
 /**
@@ -17,6 +18,7 @@ import { byProduct, houseBySlug, HOUSES } from '@/lib/gallery';
  */
 
 const NAV: NavItem[] = [
+  { id: 'try', label: 'Try your photo' },
   { id: 'proof', label: 'Before / after' },
   { id: 'christmas', label: 'Christmas' },
   { id: 'permanent', label: 'Permanent' },
@@ -60,6 +62,19 @@ export default function Gallery() {
             the customer&apos;s actual home, left intact.
           </p>
         </div>
+
+        <section id="try" className="scroll-mt-20 pb-10">
+          <p className="label">Try it on your own house</p>
+          <h2 className="mt-2 text-[21px] font-semibold tracking-tight sm:text-[26px]">
+            Upload a photo and watch it run
+          </h2>
+          <p className="mt-2 mb-4 max-w-[62ch] text-[13.5px] leading-relaxed text-[var(--muted)]">
+            The gallery below shows what the pipeline produces. This runs it live on a photograph
+            it has never seen, so none of it is cherry-picked. No roofline tracing — an uploaded
+            photo takes the unguided path, exactly as a first render would in the field.
+          </p>
+          <TryIt needsPasscode={Boolean(process.env.TRY_PASSCODE)} />
+        </section>
 
         {/* The slider sits directly under the headline rather than below a stats
             block: on a laptop the fold lands around 860px, and a visual demo that

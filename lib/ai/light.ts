@@ -1,4 +1,4 @@
-import { editImage } from './fal';
+import { editImage } from './edit';
 import { buildLightPrompt, buildRevisePrompt, LIGHT_SYSTEM } from './prompts';
 import { renderGuide } from '../image/guide';
 import type { Design, EditResult, RooflineSegment } from '../types';
