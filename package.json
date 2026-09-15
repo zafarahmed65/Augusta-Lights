@@ -10,7 +10,8 @@
     "pipeline": "tsx scripts/run-pipeline.ts",
     "calibrate": "tsx scripts/calibrate.ts",
     "fixture": "tsx scripts/make-fixture.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "consistency": "tsx scripts/consistency.ts"
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.1",
