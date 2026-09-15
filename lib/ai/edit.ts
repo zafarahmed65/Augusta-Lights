@@ -59,6 +59,16 @@ async function mockEdit(req: EditRequest): Promise<EditResult> {
 export async function editImage(req: EditRequest): Promise<EditResult> {
   if (isMock()) return mockEdit(req);
 
+  // Name both options. Without a key the provider defaults to fal, so a missing
+  // OpenRouter key used to surface as a fal error, which points at the wrong fix.
+  if (!process.env.OPENROUTER_API_KEY && !process.env.FAL_KEY) {
+    throw new Error(
+      'No image provider key found. Set OPENROUTER_API_KEY (openrouter.ai/keys) or FAL_KEY ' +
+        '(fal.ai/dashboard/keys) in your environment, or set MOCK_AI=1 to run against fixtures ' +
+        'without spending anything.',
+    );
+  }
+
   const which = provider();
   // fal already records its own spend against a price table; OpenRouter returns
   // the real figure, so only that path needs logging here.
