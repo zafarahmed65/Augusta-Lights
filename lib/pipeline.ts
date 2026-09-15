@@ -33,6 +33,9 @@ export async function runJob(id: string, original: Buffer, quality: 'draft' | 'f
     const job = await patchJob(id, {
       status: 'lighting',
       step: 'Adding lighting',
+      // Includes discarded retries, so the figure shown in the UI matches the
+      // fal dashboard rather than under-reporting a two-attempt render.
+      spendUsd: master.costUsd,
       preservation: {
         score: master.report.score,
         localScore: master.report.detail.localScore,
@@ -71,6 +74,8 @@ export async function lightAndCompose(id: string, master: Buffer, segments?: Roo
   });
 
   if (guide) await writeJobFile(id, 'guide.png', guide);
+  // Kept so branding can be re-composited locally without paying for another render.
+  await writeJobFile(id, 'lit.jpg', edit.buffer);
   const hero = await composeHero(edit.buffer, {
     lastName: job.lastName,
     designLabel: design.label,

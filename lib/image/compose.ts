@@ -35,8 +35,14 @@ export interface HeroOptions {
 
 export async function composeHero(image: Buffer, opts: HeroOptions): Promise<Buffer> {
   const targetWidth = opts.targetWidth ?? 2048;
-  const base = sharp(image).resize(targetWidth, undefined, { withoutEnlargement: false });
-  const { width = targetWidth, height = Math.round((targetWidth * 3) / 4) } = await base.clone().metadata();
+
+  // Resize to a buffer first, then measure it. sharp's metadata() reports the
+  // SOURCE dimensions even with a resize queued, so measuring the pipeline
+  // directly sizes the caption overlay to the input and lands it in the corner
+  // at the wrong scale.
+  const resized = await sharp(image).resize(targetWidth, undefined, { withoutEnlargement: false }).toBuffer();
+  const { width = targetWidth, height = Math.round((targetWidth * 3) / 4) } = await sharp(resized).metadata();
+  const base = sharp(resized);
 
   const caption = residenceName(opts.lastName);
   const pad = Math.round(width * 0.035);

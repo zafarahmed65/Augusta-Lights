@@ -23,6 +23,8 @@ export interface MasterOutcome {
   buffer: Buffer;
   report: PreservationReport;
   attempts: number;
+  /** Total across every attempt, including ones the retry discarded. */
+  costUsd: number;
   /** Every attempt, so a rejected render can still be shown in the write-up. */
   history: { attempt: number; score: number; passed: boolean }[];
   edit: EditResult;
@@ -31,6 +33,7 @@ export interface MasterOutcome {
 export async function generateMaster(original: Buffer, opts: MasterOptions = {}): Promise<MasterOutcome> {
   const { quality = 'draft', threshold = 88, maxAttempts = 2, seed } = opts;
   const history: MasterOutcome['history'] = [];
+  let costUsd = 0;
 
   let best: { buffer: Buffer; report: PreservationReport; edit: EditResult } | null = null;
 
@@ -43,6 +46,7 @@ export async function generateMaster(original: Buffer, opts: MasterOptions = {})
       seed,
     });
 
+    costUsd += edit.costUsd;
     const report = await verifyPreservation(original, edit.buffer, threshold);
     history.push({ attempt, score: report.score, passed: report.passed });
     console.log(
@@ -55,5 +59,5 @@ export async function generateMaster(original: Buffer, opts: MasterOptions = {})
     if (attempt < maxAttempts) console.log('  retrying with stricter preservation prompt...');
   }
 
-  return { ...best!, attempts: history.length, history };
+  return { ...best!, attempts: history.length, history, costUsd: Number(costUsd.toFixed(3)) };
 }
