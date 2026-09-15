@@ -61,13 +61,36 @@ export default function Gallery() {
       {alvarez && (
         <Section
           eyebrow="Difficult photograph"
-          title="Vehicle removed, façade rebuilt"
-          note="The car overlaps the house, so removing it means reconstructing the porch and wall behind it — not just patching driveway. Shot in flat overcast light, the kind of photo a salesperson actually takes."
+          title="Vehicle removal, and its limit"
+          note="The sedan was parked across the façade, not merely on the driveway. It comes out cleanly and the driveway rebuilds — but anything the car was covering has to be invented, because no photograph of it exists."
         >
           <BeforeAfter
             before={asset(alvarez.original)}
             after={asset(alvarez.variants[0]?.file ?? alvarez.master)}
           />
+
+          <div className="mt-3">
+            <PreservationBadge score={alvarez.preservation.score} passed={alvarez.preservation.passed} />
+          </div>
+
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={asset(alvarez.overlay)}
+            alt="Overlay showing invented structure in red where the vehicle stood"
+            className="mt-3 w-full rounded-xl border border-[var(--line)]"
+          />
+
+          <p className="mt-3 text-[12px] leading-relaxed text-[var(--muted)]">
+            The check refused this render, and the red maps exactly onto where the car stood —
+            a wall, windows and a garage the model had to guess at. The rest of the house is
+            green and untouched. We would rather flag that than quietly send a homeowner a
+            picture of a house that is not theirs.
+          </p>
+          <p className="mt-2 text-[12px] leading-relaxed text-[var(--muted)]">
+            <b className="text-[var(--text)]">In practice:</b> a car on open driveway removes
+            perfectly. When one covers the façade, the fix is thirty seconds of the
+            salesperson&apos;s time — ask the homeowner to back it out, or step left and reshoot.
+          </p>
         </Section>
       )}
 

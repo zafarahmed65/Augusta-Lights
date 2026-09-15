@@ -122,11 +122,16 @@ async function masterFor(spec: HouseSpec, original: Buffer) {
 
   const outcome = await generateMaster(source, { quality: 'draft', preCleaned: spec.hasVehicle });
   await writeFile(cached, outcome.buffer);
-  await writeFile(path.join(CACHE, `${spec.slug}.${hash}.overlay.png`), outcome.report.overlay);
+
+  // Always score against the TRUE original, never the cleaned intermediate.
+  // Reconstructing the facade behind a removed vehicle is itself invention, and
+  // verifying the dusk pass against the cleaned image would hide exactly that.
+  const against = await verifyPreservation(original, outcome.buffer);
+  await writeFile(path.join(CACHE, `${spec.slug}.${hash}.overlay.png`), against.overlay);
   const report = {
-    score: outcome.report.score,
-    localScore: outcome.report.detail.localScore,
-    passed: outcome.report.passed,
+    score: against.score,
+    localScore: against.detail.localScore,
+    passed: against.passed,
     attempts: outcome.attempts,
   };
   await writeFile(meta, JSON.stringify(report, null, 2));

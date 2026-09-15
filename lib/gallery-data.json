@@ -7,7 +7,7 @@
       "master": "alvarez-master.jpg",
       "overlay": "alvarez-overlay.webp",
       "preservation": {
-        "score": 97.9,
+        "score": 91.7,
         "localScore": 0,
         "passed": false,
         "attempts": 2
@@ -108,5 +108,5 @@
       "sheet": "payne-sheet.jpg"
     }
   ],
-  "builtAt": "2026-09-15T08:05:20.200Z"
+  "builtAt": "2026-09-15T08:07:51.725Z"
 }
