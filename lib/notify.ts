@@ -93,8 +93,8 @@ async function send(subject: string, lines: [string, string | undefined][]) {
   });
 }
 
-/** Someone opened the demo. */
-export async function notifyVisit(v: VisitInfo): Promise<void> {
+/** Someone opened the demo. Resolves to the failure reason, or null on success. */
+export async function notifyVisit(v: VisitInfo): Promise<string | null> {
   try {
     await send(`Demo opened — ${placeOf(v)}`, [
       ['Page', v.page],
@@ -104,8 +104,11 @@ export async function notifyVisit(v: VisitInfo): Promise<void> {
       ['Device', v.userAgent],
       ['Time', new Date().toLocaleString('en-US', { timeZoneName: 'short' })],
     ]);
+    return null;
   } catch (err) {
-    console.warn('visit notification failed:', (err as Error).message.slice(0, 120));
+    const reason = (err as Error).message.slice(0, 160);
+    console.warn('visit notification failed:', reason);
+    return reason;
   }
 }
 

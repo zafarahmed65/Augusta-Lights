@@ -39,10 +39,19 @@ export async function POST(req: Request) {
       console.warn('visit not emailed — missing:', status.missing.join(', '));
       return Response.json({ ok: true, emailed: false, missing: status.missing });
     }
-    // Not awaited: the visitor should never wait on an SMTP round trip.
-    void notifyVisit(visitor);
-  } catch {
-    /* a beacon must never surface an error to the page */
+    /*
+     * Awaited deliberately.
+     *
+     * Serverless freezes the execution context the moment the handler returns,
+     * so a fire-and-forget promise is killed before SMTP finishes its handshake.
+     * That is why this worked locally, where the process keeps running, and sent
+     * nothing once deployed. The beacon is fired with keepalive and its response
+     * is ignored, so waiting a second here costs the visitor nothing.
+     */
+    const failure = await notifyVisit(visitor);
+    return Response.json({ ok: true, emailed: !failure, ...(failure ? { error: failure } : {}) });
+  } catch (err) {
+    // A beacon must never break the page, but say what went wrong when asked.
+    return Response.json({ ok: true, emailed: false, error: (err as Error).message.slice(0, 160) });
   }
-  return Response.json({ ok: true, emailed: true });
 }

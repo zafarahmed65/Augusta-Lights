@@ -119,7 +119,9 @@ export async function POST(req: Request) {
           targetWidth: 1600,
         });
 
-        void notifyRender(visitor, design.label, true);
+        // Awaited for the same reason as the visit beacon: serverless kills
+        // detached promises when the handler returns.
+        await notifyRender(visitor, design.label, true);
 
         const jpeg = (b: Buffer) => `data:image/jpeg;base64,${b.toString('base64')}`;
         send({
@@ -137,7 +139,7 @@ export async function POST(req: Request) {
         const friendly = /answered in text instead of returning an image/.test(raw)
           ? 'The model described the edit instead of producing it — an intermittent fault we retry three times. Press render again; it usually works on the next try.'
           : raw;
-        void notifyRender(visitor, designId, false, raw.slice(0, 120));
+        await notifyRender(visitor, designId, false, raw.slice(0, 120));
         send({ error: friendly });
       } finally {
         controller.close();
