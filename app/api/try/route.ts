@@ -109,7 +109,13 @@ export async function POST(req: Request) {
           costUsd: Number((master.costUsd + lit.edit.costUsd).toFixed(3)),
         });
       } catch (err) {
-        send({ error: (err as Error).message });
+        const raw = (err as Error).message;
+        // Translate the one failure a visitor can actually act on. Everything
+        // else passes through so it stays debuggable.
+        const friendly = /answered in text instead of returning an image/.test(raw)
+          ? 'The model described the edit instead of producing it — an intermittent fault we retry three times. Press render again; it usually works on the next try.'
+          : raw;
+        send({ error: friendly });
       } finally {
         controller.close();
       }

@@ -17,6 +17,17 @@ const FINAL_MODEL = 'google/gemini-3-pro-image';
 /** A single edit should never outlast this; a stuck request blocks a whole batch. */
 const REQUEST_TIMEOUT_MS = 6 * 60 * 1000;
 
+/**
+ * Gemini image models intermittently answer in prose — "I have updated the
+ * photograph…" — and attach no image. It is not a refusal and not deterministic;
+ * the identical request usually succeeds on a second attempt. Observed live on
+ * the upload endpoint after the same prompt had worked in batch runs.
+ */
+const NO_IMAGE_ATTEMPTS = 3;
+const RETURN_THE_IMAGE =
+  '\n\nReturn the edited image itself as an image. Do not reply with a description, ' +
+  'a summary, or any text about what you changed.';
+
 async function toDataUrl(image: string | Buffer): Promise<string> {
   if (typeof image === 'string' && /^https?:\/\//.test(image)) return image;
   const buf = typeof image === 'string' ? await readFile(image) : image;
@@ -39,11 +50,54 @@ export async function editImageViaOpenRouter(req: EditRequest): Promise<EditResu
   const model = req.quality === 'final' ? FINAL_MODEL : DRAFT_MODEL;
   const images = await Promise.all(req.images.map(toDataUrl));
 
-  const content = [
-    { type: 'text', text: req.prompt },
-    ...images.map((url) => ({ type: 'image_url', image_url: { url } })),
-  ];
+  /*
+   * The system prompt is folded into the user turn rather than sent as a system
+   * message. Gemini's image path has no real system role, so OpenRouter has to
+   * translate it, and a separate system turn measurably raises the chance of a
+   * text-only reply.
+   */
+  const instruction = req.systemPrompt ? `${req.systemPrompt}\n\n${req.prompt}` : req.prompt;
 
+  const attempt = async (text: string) => {
+    const content = [
+      { type: 'text', text },
+      ...images.map((url) => ({ type: 'image_url', image_url: { url } })),
+    ];
+    return callModel(key, model, content);
+  };
+
+  let lastSaid = '';
+  for (let i = 0; i < NO_IMAGE_ATTEMPTS; i++) {
+    // Each retry states the requirement more plainly than the last.
+    const data = await attempt(i === 0 ? instruction : instruction + RETURN_THE_IMAGE);
+    const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
+    if (url) {
+      const buffer = Buffer.from(url.split(',', 2)[1], 'base64');
+      const meta = await sharp(buffer).metadata();
+      if (i > 0) console.log(`  (image returned on attempt ${i + 1})`);
+      return {
+        buffer,
+        width: meta.width ?? 0,
+        height: meta.height ?? 0,
+        model,
+        costUsd: data.usage?.cost ?? 0,
+      };
+    }
+    lastSaid = String(data.choices?.[0]?.message?.content ?? '').slice(0, 200);
+    console.warn(`  ${model} replied with text instead of an image (attempt ${i + 1}/${NO_IMAGE_ATTEMPTS})`);
+  }
+
+  throw new Error(
+    `${model} answered in text instead of returning an image, ${NO_IMAGE_ATTEMPTS} times. ` +
+      `It said: "${lastSaid}"`,
+  );
+}
+
+async function callModel(
+  key: string,
+  model: string,
+  content: unknown[],
+): Promise<ORResponse> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   let res: Response;
@@ -55,10 +109,7 @@ export async function editImageViaOpenRouter(req: EditRequest): Promise<EditResu
       body: JSON.stringify({
         model,
         modalities: ['image', 'text'],
-        messages: [
-          ...(req.systemPrompt ? [{ role: 'system', content: req.systemPrompt }] : []),
-          { role: 'user', content },
-        ],
+        messages: [{ role: 'user', content }],
       }),
     });
   } catch (err) {
@@ -72,21 +123,5 @@ export async function editImageViaOpenRouter(req: EditRequest): Promise<EditResu
 
   const data = (await res.json()) as ORResponse;
   if (data.error) throw new Error(`OpenRouter: ${data.error.message ?? 'unknown error'}`);
-
-  const url = data.choices?.[0]?.message?.images?.[0]?.image_url?.url;
-  if (!url) {
-    const text = data.choices?.[0]?.message?.content ?? JSON.stringify(data).slice(0, 300);
-    throw new Error(`${model} returned no image. Said: ${String(text).slice(0, 300)}`);
-  }
-
-  const buffer = Buffer.from(url.split(',', 2)[1], 'base64');
-  const meta = await sharp(buffer).metadata();
-
-  return {
-    buffer,
-    width: meta.width ?? 0,
-    height: meta.height ?? 0,
-    model,
-    costUsd: data.usage?.cost ?? 0,
-  };
+  return data;
 }
