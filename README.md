@@ -1,36 +1,83 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Augusta Lights — Visualization Pipeline
 
-## Getting Started
+Turns one phone photo of a customer's home into a realistic dusk render with a proposed
+Christmas or Omni permanent lighting installation, without altering the architecture.
 
-First, run the development server:
+## Why this is built the way it is
+
+The client's stated acceptance criterion is architectural preservation: *"A beautiful image
+that materially changes the architecture is considered a FAILED rendering."* Three design
+decisions follow from that, and each costs nothing in API spend:
+
+1. **The preservation score is measured, not promised.** `lib/image/verify.ts` extracts edge
+   structure from the original and the render and reports how much survived, with an overlay
+   that marks preserved structure green and invented structure red.
+2. **Every variation derives from one dusk master.** The house, sky and colour grade are
+   generated once; lighting designs are applied to that fixed image. Consistency across the
+   2x2 comparison sheet is guaranteed by construction, not by luck.
+3. **Bulb placement is computed, not prompted.** `lib/image/guide.ts` walks the traced
+   roofline and places every bulb at real-world spacing in the right colour, then hands the
+   model an overlay. The model renders lights at given points instead of inventing a layout —
+   which is what makes "2 red / 2 white" come out as 2 red / 2 white.
+
+## Pipeline
+
+| Stage | Module | API cost |
+|---|---|---|
+| S1 dusk master | `lib/ai/master.ts` | 1 call |
+| S2 preservation check + auto-retry | `lib/image/verify.ts` | free, local |
+| S3 roofline trace | UI | free |
+| S4 bulb guide render | `lib/image/guide.ts` | free, local |
+| S5 lighting pass | `lib/ai/light.ts` | 1 call per design |
+| S6 branding composite | `lib/image/compose.ts` | free, local |
+
+## Setup
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+cp .env.example .env.local   # add your FAL_KEY
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Running the pipeline headlessly
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run pipeline -- fixtures/houses/test-house.jpg \
+  --designs warm-white,candy-cane \
+  --roofline fixtures/houses/test-house.roofline.json
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Every stage is written to `out/<photo-name>/`. The dusk master is cached by photo hash, so
+re-running to iterate on lighting prompts costs nothing. Flags: `--final` (2K deliverable
+quality), `--fresh` (ignore the cached master), `--frontage <ft>` (bulb spacing scale).
 
-## Learn More
+To work on the UI without spending anything:
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+MOCK_AI=1 npm run pipeline -- fixtures/houses/test-house.jpg
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Verifying the preservation score
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run calibrate
+```
 
-## Deploy on Vercel
+Runs synthetic edits with known ground truth and asserts the score classifies them correctly.
+Current results on the synthetic fixture:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+| Case | Global | Worst region | Verdict |
+|---|---|---|---|
+| identity | 100 | 100 | pass |
+| tone-only regrade | 99.8 | 86.3 | pass |
+| JPEG + resize round-trip | 100 | 100 | pass |
+| one window added | 90.3 | **0** | **fail** |
+| roof gable invented | 91.4 | **0** | **fail** |
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Note the last two rows: a global average barely moves when a window is fabricated, which is
+why the check fails on the *worst region* rather than the mean.
+
+## Cost control
+
+`lib/ai/fal.ts` is the only module that may import the fal client, so `FAL_KEY` lives in one
+place and every call is logged to `out/.spend.json` with a running total. Draft quality
+(0.5K, $0.06) is the default everywhere; `final` is opt-in per call.
