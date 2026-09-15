@@ -23,6 +23,24 @@ const PRICING: Record<string, Partial<Record<Resolution, number>>> = {
 
 const SPEND_FILE = path.join(process.cwd(), 'out', '.spend.json');
 
+/**
+ * Hard ceiling on one render. fal.subscribe has no timeout of its own, so a
+ * request that never settles blocks the whole batch indefinitely — observed
+ * during the gallery build, where one variant hung for over twenty minutes while
+ * spend sat still. A 2K edit normally returns in one to four minutes.
+ */
+const REQUEST_TIMEOUT_MS = 6 * 60 * 1000;
+
+function withTimeout<T>(work: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: NodeJS.Timeout;
+  return Promise.race([
+    work,
+    new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`${label} did not return within ${ms / 1000}s`)), ms);
+    }),
+  ]).finally(() => clearTimeout(timer)) as Promise<T>;
+}
+
 export const isMock = () => process.env.MOCK_AI === '1';
 
 /**
@@ -116,7 +134,7 @@ export async function editImage(req: EditRequest): Promise<EditResult> {
   const { model, resolution } = resolveModel(req.quality);
   const image_urls = await Promise.all(req.images.map(toUrl));
 
-  const result = await fal.subscribe(model, {
+  const result = await withTimeout(fal.subscribe(model, {
     input: {
       prompt: req.prompt,
       image_urls,
@@ -126,7 +144,7 @@ export async function editImage(req: EditRequest): Promise<EditResult> {
       ...(req.systemPrompt ? { system_prompt: req.systemPrompt } : {}),
       ...(req.seed !== undefined ? { seed: req.seed } : {}),
     },
-  });
+  }), REQUEST_TIMEOUT_MS, model);
 
   const image = (result.data as { images?: { url: string; width?: number; height?: number }[] }).images?.[0];
   if (!image?.url) {

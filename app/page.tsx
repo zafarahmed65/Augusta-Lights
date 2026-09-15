@@ -1,212 +1,140 @@
-'use client';
+import { BeforeAfter } from './components/BeforeAfter';
+import { PreservationBadge } from './components/PreservationBadge';
+import { VariantPicker } from './components/VariantPicker';
+import { Section } from './components/Section';
+import { asset, byProduct, houseBySlug, HOUSES } from '@/lib/gallery';
 
-import { useRouter } from 'next/navigation';
-import { useRef, useState } from 'react';
-import { CHRISTMAS_DESIGNS, PERMANENT_DESIGNS } from '@/lib/designs';
-import { Shell } from './components/Shell';
-import { PatternSwatch } from './components/PatternSwatch';
+/**
+ * The demo. A static gallery of finished work — no upload, no options, no
+ * Generate. Every image is a build artefact, so the page renders with no API key
+ * present and a visitor cannot spend anything by opening it.
+ */
+export default function Gallery() {
+  const payne = houseBySlug('payne') ?? HOUSES[0];
+  const alvarez = houseBySlug('alvarez');
+  if (!payne) return null;
 
-const DECORATIONS = [
-  { id: 'tree-wraps', label: 'Tree Wraps', hint: 'Wrap both oak trees in warm white' },
-  { id: 'shrubs', label: 'Shrubs / Landscaping', hint: 'Mini lights on three shrubs below left window' },
-  { id: 'wreaths', label: 'Wreaths', hint: '48-inch wreath centered above garage' },
-  { id: 'ground-stakes', label: 'Ground Stakes', hint: 'Warm-white stakes both sides of driveway' },
-];
-
-export default function Home() {
-  const router = useRouter();
-  const fileRef = useRef<HTMLInputElement>(null);
-  const [preview, setPreview] = useState<string>();
-  const [product, setProduct] = useState<'christmas' | 'permanent'>('christmas');
-  const [designId, setDesignId] = useState('warm-white');
-  const [lastName, setLastName] = useState('');
-  const [decor, setDecor] = useState<Record<string, string>>({});
-  const [notes, setNotes] = useState('');
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string>();
-
-  const designs = product === 'christmas' ? CHRISTMAS_DESIGNS : PERMANENT_DESIGNS;
-
-  function switchProduct(next: 'christmas' | 'permanent') {
-    setProduct(next);
-    setDesignId(next === 'christmas' ? 'warm-white' : 'omni-warm');
-  }
-
-  function pickFile(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (file) setPreview(URL.createObjectURL(file));
-  }
-
-  async function submit() {
-    const file = fileRef.current?.files?.[0];
-    if (!file) return setError('Take or choose a photo of the house first.');
-    setBusy(true);
-    setError(undefined);
-
-    const form = new FormData();
-    form.set('photo', file);
-    form.set('lastName', lastName);
-    form.set('designId', designId);
-    form.set('placementNotes', notes);
-    for (const [id, text] of Object.entries(decor)) {
-      const label = DECORATIONS.find((d) => d.id === id)!.label;
-      form.append('decorations', text.trim() ? `${label}: ${text.trim()}` : label);
-    }
-
-    try {
-      const res = await fetch('/api/jobs', { method: 'POST', body: form });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Could not start the render.');
-      router.push(`/job/${data.id}`);
-    } catch (err) {
-      setError((err as Error).message);
-      setBusy(false);
-    }
-  }
+  const { christmas, permanent } = byProduct(payne);
 
   return (
-    <Shell>
-      <div className="space-y-5">
-        <div>
-          <input
-            ref={fileRef}
-            type="file"
-            accept="image/*"
-            capture="environment"
-            onChange={pickFile}
-            className="hidden"
-            id="photo"
+    <div className="mx-auto min-h-dvh w-full max-w-[560px] px-4 pb-16">
+      <header className="py-6">
+        <div className="flex items-baseline gap-2">
+          <span className="text-[16px] font-semibold tracking-tight">Augusta Lights</span>
+          <span className="label">Visualizer</span>
+        </div>
+        <p className="mt-3 text-[13px] leading-relaxed text-[var(--muted)]">
+          One photograph of a customer&apos;s home becomes a dusk visualization of the lighting
+          we would install — without redesigning their house. Everything below was produced by
+          the pipeline from a single daytime photo.
+        </p>
+      </header>
+
+      <Section
+        eyebrow="Start here"
+        title="That&apos;s my house"
+        note="Drag the handle. The photograph on the left is what the homeowner took. Every window, gable, dormer, garage door and the stone veneer survives the conversion."
+      >
+        <BeforeAfter before={asset(payne.original)} after={asset(payne.variants[0]?.file ?? payne.master)} />
+      </Section>
+
+      {christmas.length > 0 && (
+        <Section
+          eyebrow="Christmas lighting"
+          title="Every colour option, same house"
+          note="SMD C9 bulbs on the front-facing roofline at 15-inch spacing. Multicolour designs use repeating groups — two red then two white — not alternating single bulbs."
+        >
+          <VariantPicker variants={christmas} houseName={payne.lastName} />
+        </Section>
+      )}
+
+      {permanent.length > 0 && (
+        <Section
+          eyebrow="Omni permanent lighting"
+          title="Architectural wall wash"
+          note="Fixtures recessed into the eave at 8-inch spacing, washing light down the façade rather than reading as exposed bulbs. The same house again, unchanged."
+        >
+          <VariantPicker variants={permanent} houseName={payne.lastName} />
+        </Section>
+      )}
+
+      {alvarez && (
+        <Section
+          eyebrow="Difficult photograph"
+          title="Vehicle removed, façade rebuilt"
+          note="The car overlaps the house, so removing it means reconstructing the porch and wall behind it — not just patching driveway. Shot in flat overcast light, the kind of photo a salesperson actually takes."
+        >
+          <BeforeAfter
+            before={asset(alvarez.original)}
+            after={asset(alvarez.variants[0]?.file ?? alvarez.master)}
           />
-          <label
-            htmlFor="photo"
-            className="card flex h-52 cursor-pointer items-center justify-center overflow-hidden"
-          >
-            {preview ? (
-              // Object URL of a local file; next/image would need a remote loader.
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={preview} alt="Selected house" className="h-full w-full object-cover" />
-            ) : (
-              <div className="text-center">
-                <div className="text-3xl">📷</div>
-                <div className="mt-2 text-sm font-medium">Take or choose a photo</div>
-                <div className="mt-1 text-[11px] text-[var(--muted)]">Front-facing view of the house</div>
-              </div>
-            )}
-          </label>
-        </div>
+        </Section>
+      )}
 
-        <div>
-          <label className="label" htmlFor="lastName">Customer last name</label>
-          <input
-            id="lastName"
-            className="field mt-1.5"
-            placeholder="Payne"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
+      {payne.sheet && (
+        <Section
+          eyebrow="Comparison sheet"
+          title="Four options on one page"
+          note="A separate downloadable JPEG for the homeowner to consider. All four tiles derive from the same dusk photograph: the sky and lawn are byte-identical across them, so only the lighting differs."
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={asset(payne.sheet)}
+            alt="Two by two comparison of four lighting designs"
+            className="w-full rounded-xl border border-[var(--line)]"
           />
-        </div>
+          <a className="btn btn-ghost mt-3" href={asset(payne.sheet)} download>
+            Download comparison sheet
+          </a>
+        </Section>
+      )}
 
-        <div>
-          <div className="label">Product</div>
-          <div className="mt-1.5 grid grid-cols-2 gap-2">
-            {(['christmas', 'permanent'] as const).map((p) => (
-              <button
-                key={p}
-                onClick={() => switchProduct(p)}
-                className="rounded-lg border px-3 py-3 text-[13px] font-medium"
-                style={{
-                  borderColor: product === p ? 'var(--accent)' : 'var(--line)',
-                  background: product === p ? 'rgba(255,196,107,0.1)' : 'var(--surface-2)',
-                }}
-              >
-                {p === 'christmas' ? 'Christmas Lights' : 'Omni Permanent'}
-              </button>
-            ))}
-          </div>
-        </div>
+      <Section
+        eyebrow="Quality control"
+        title="Architecture is measured, not promised"
+        note="Every render is compared against the original photograph. Green is structure that survived; red is structure that changed. The score is the share of the building's edges that came through intact."
+      >
+        <PreservationBadge score={payne.preservation.score} passed={payne.preservation.passed} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={asset(payne.overlay)}
+          alt="Edge comparison overlay showing preserved structure in green"
+          className="mt-3 w-full rounded-xl border border-[var(--line)]"
+        />
+        <p className="mt-3 text-[12px] leading-relaxed text-[var(--muted)]">
+          Stated plainly: this reliably catches large failures — an invented roof section, a
+          materially changed roofline — and reliably passes correct renders. It is a review
+          aid, not a proof. A pass means no gross structural change was detected, not that the
+          architecture is certified identical.
+        </p>
+      </Section>
 
-        <div>
-          <div className="label">Color / pattern</div>
-          <div className="mt-1.5 space-y-2">
-            {designs.map((d) => (
-              <button
-                key={d.id}
-                onClick={() => setDesignId(d.id)}
-                className="flex w-full items-center justify-between rounded-lg border px-3.5 py-3"
-                style={{
-                  borderColor: designId === d.id ? 'var(--accent)' : 'var(--line)',
-                  background: designId === d.id ? 'rgba(255,196,107,0.1)' : 'var(--surface-2)',
-                }}
-              >
-                <span className="text-[13px] font-medium">{d.label}</span>
-                <PatternSwatch design={d} />
-              </button>
-            ))}
-          </div>
-        </div>
+      <Section
+        eyebrow="How it works"
+        title="One master, many options"
+        note="The photograph is converted to dusk once — sky, window glow, vehicle removal, colour grade — and that single image is reused for every lighting design. Consistency between options is guaranteed by construction rather than by asking the model nicely."
+      >
+        <ol className="space-y-2 text-[13px] text-[var(--muted)]">
+          {[
+            'Convert the photo to blue-hour dusk and clean it up',
+            'Measure what changed against the original',
+            'Trace the front-facing roofline on the phone, about ten seconds',
+            'Compute every bulb position and colour at real-world spacing',
+            'Render the lights, then hold the result to the dusk master',
+            'Composite the residence name and logo locally, never by the model',
+          ].map((step, i) => (
+            <li key={i} className="flex gap-2.5">
+              <span className="text-[var(--accent)] tabular-nums">{i + 1}</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </Section>
 
-        <div>
-          <div className="label">Decorative elements</div>
-          <div className="mt-1.5 space-y-2">
-            {DECORATIONS.map((d) => {
-              const on = d.id in decor;
-              return (
-                <div key={d.id} className="card overflow-hidden">
-                  <button
-                    onClick={() =>
-                      setDecor((prev) => {
-                        const next = { ...prev };
-                        if (on) delete next[d.id];
-                        else next[d.id] = '';
-                        return next;
-                      })
-                    }
-                    className="flex w-full items-center gap-3 px-3.5 py-3"
-                  >
-                    <span
-                      className="grid h-[18px] w-[18px] place-items-center rounded border text-[11px]"
-                      style={{
-                        borderColor: on ? 'var(--accent)' : 'var(--line)',
-                        background: on ? 'var(--accent)' : 'transparent',
-                        color: 'var(--accent-ink)',
-                      }}
-                    >
-                      {on ? '✓' : ''}
-                    </span>
-                    <span className="text-[13px]">{d.label}</span>
-                  </button>
-                  {on && (
-                    <input
-                      className="field rounded-none border-0 border-t text-[14px]"
-                      placeholder={d.hint}
-                      value={decor[d.id]}
-                      onChange={(e) => setDecor((prev) => ({ ...prev, [d.id]: e.target.value }))}
-                    />
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div>
-          <label className="label" htmlFor="notes">Placement instructions</label>
-          <textarea
-            id="notes"
-            rows={3}
-            className="field mt-1.5 resize-none"
-            placeholder="Front roofline only. Skip the lower garage roof."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-          />
-        </div>
-
-        {error && <div className="text-[13px] text-[var(--bad)]">{error}</div>}
-
-        <button className="btn btn-primary" onClick={submit} disabled={busy}>
-          {busy ? 'Starting…' : 'Generate visualization'}
-        </button>
-      </div>
-    </Shell>
+      <footer className="mt-10 border-t border-[var(--line)] pt-5 text-[11px] leading-relaxed text-[var(--muted)]">
+        Prototype for Augusta Lights. Test photographs are licensed stock, not customer
+        properties. Renders are 2048px JPEGs produced by the pipeline in this repository.
+      </footer>
+    </div>
   );
 }

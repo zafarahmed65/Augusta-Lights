@@ -1,0 +1,98 @@
+{
+  "houses": [
+    {
+      "slug": "payne",
+      "lastName": "Payne",
+      "original": "payne-original.jpg",
+      "master": "payne-master.jpg",
+      "overlay": "payne-overlay.webp",
+      "preservation": {
+        "score": 98.3,
+        "localScore": 30.9,
+        "passed": false,
+        "attempts": 2
+      },
+      "variants": [
+        {
+          "designId": "warm-white",
+          "label": "Warm White",
+          "product": "c9",
+          "file": "payne-warm-white.jpg",
+          "bulbCount": 0
+        },
+        {
+          "designId": "cool-white",
+          "label": "Cool White",
+          "product": "c9",
+          "file": "payne-cool-white.jpg",
+          "bulbCount": 50
+        },
+        {
+          "designId": "candy-cane",
+          "label": "Candy Cane",
+          "product": "c9",
+          "file": "payne-candy-cane.jpg",
+          "bulbCount": 50
+        },
+        {
+          "designId": "blue-white",
+          "label": "Blue / White",
+          "product": "c9",
+          "file": "payne-blue-white.jpg",
+          "bulbCount": 50
+        },
+        {
+          "designId": "red-green",
+          "label": "Red / Green",
+          "product": "c9",
+          "file": "payne-red-green.jpg",
+          "bulbCount": 50
+        },
+        {
+          "designId": "omni-warm",
+          "label": "Warm Architectural White",
+          "product": "omni",
+          "file": "payne-omni-warm.jpg",
+          "bulbCount": 93
+        },
+        {
+          "designId": "omni-cool",
+          "label": "Cool Architectural White",
+          "product": "omni",
+          "file": "payne-omni-cool.jpg",
+          "bulbCount": 93
+        },
+        {
+          "designId": "omni-rgb",
+          "label": "RGB / Rainbow",
+          "product": "omni",
+          "file": "payne-omni-rgb.jpg",
+          "bulbCount": 93
+        },
+        {
+          "designId": "omni-red-white",
+          "label": "Red / White",
+          "product": "omni",
+          "file": "payne-omni-red-white.jpg",
+          "bulbCount": 93
+        },
+        {
+          "designId": "omni-blue-white",
+          "label": "Blue / White",
+          "product": "omni",
+          "file": "payne-omni-blue-white.jpg",
+          "bulbCount": 93
+        },
+        {
+          "designId": "omni-red-green",
+          "label": "Red / Green",
+          "product": "omni",
+          "file": "payne-omni-red-green.jpg",
+          "bulbCount": 93
+        }
+      ],
+      "sheet": "payne-sheet.jpg"
+    }
+  ],
+  "builtAt": "2026-09-15T08:03:48.165Z"
+}

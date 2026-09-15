@@ -44,23 +44,37 @@ npm install
 cp .env.example .env.local   # add your FAL_KEY
 ```
 
+## The demo
+
+The deployed page is a **static gallery** — finished work, not a live generator. There is no
+upload form and no Generate button, so it renders with no `FAL_KEY` present and a visitor
+cannot spend anything by opening it.
+
+Assets live in `public/gallery/` and are described by `lib/gallery-data.json`, both produced by:
+
+```bash
+RESOLUTION=2K npm run gallery
+```
+
+Masters are cached in `out/gallery-cache/` by content hash, so re-running to add a design or
+re-compose the comparison sheet costs nothing. Useful flags: `npm run gallery -- payne`
+(one house), `--designs=warm-white,candy-cane` (a subset), `--master-only` (dusk pass only,
+so a roofline can be traced before paying for variants).
+
+The 2x2 comparison sheet costs **zero API calls** — it is composed locally from four variants
+already on disk.
+
 ## Running the pipeline headlessly
 
 ```bash
-npm run pipeline -- fixtures/houses/test-house.jpg \
+npm run pipeline -- fixtures/houses/house-01.jpg \
   --designs warm-white,candy-cane \
-  --roofline fixtures/houses/test-house.roofline.json
+  --roofline fixtures/houses/house-01.roofline.json
 ```
 
-Every stage is written to `out/<photo-name>/`. The dusk master is cached by photo hash, so
-re-running to iterate on lighting prompts costs nothing. Flags: `--final` (2K deliverable
-quality), `--fresh` (ignore the cached master), `--frontage <ft>` (bulb spacing scale).
-
-To work on the UI without spending anything:
-
-```bash
-MOCK_AI=1 npm run pipeline -- fixtures/houses/test-house.jpg
-```
+Every stage is written to `out/<photo-name>/`. Flags: `--final` (Nano Banana Pro),
+`--fresh` (ignore the cached master), `--frontage <ft>` (bulb spacing scale). Set
+`MOCK_AI=1` to exercise the pipeline against fixtures without spending.
 
 ## Verifying the preservation score
 

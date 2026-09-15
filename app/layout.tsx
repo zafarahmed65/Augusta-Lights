@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: 'Augusta Lights — Visualizer',
   description: 'Christmas and permanent lighting visualizations from a single photo.',
   appleWebApp: { capable: true, statusBarStyle: 'black-translucent', title: 'Augusta Lights' },
+  manifest: '/manifest.webmanifest',
 };
 
 export const viewport: Viewport = {

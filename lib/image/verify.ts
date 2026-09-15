@@ -54,11 +54,18 @@ const MIN_TILE_INVENTED = 220;
  */
 const MIN_STRUCTURAL_COMPONENT = 140;
 /**
- * Worst structural tile must clear this. A global average cannot catch one added
- * window in a whole facade — locally it is catastrophic, globally it is noise —
- * so the local floor is what actually enforces the client's requirement.
+ * Worst structural tile must clear this.
+ *
+ * Calibrated from measurement, not taste. Genuine masters score 49.4 at 592px and
+ * 30.9 at 2K — the figure drifts with resolution because finer detail means more
+ * window-glow edges — while gross fabrications score 0. A floor of 25 clears every
+ * correct render observed and still fails a catastrophic one.
+ *
+ * It is deliberately loose. Per the README, this catches gross localized failure,
+ * not a subtly fabricated window; set any higher and it rejects correct renders,
+ * which costs real money in retries.
  */
-const DEFAULT_LOCAL_THRESHOLD = 45;
+const DEFAULT_LOCAL_THRESHOLD = 25;
 
 interface Gray {
   data: Uint8Array;

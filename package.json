@@ -11,7 +11,9 @@
     "calibrate": "tsx scripts/calibrate.ts",
     "fixture": "tsx scripts/make-fixture.ts",
     "typecheck": "tsc --noEmit",
-    "consistency": "tsx scripts/consistency.ts"
+    "consistency": "tsx scripts/consistency.ts",
+    "gallery": "tsx scripts/build-gallery.ts",
+    "grid": "tsx scripts/grid.ts"
   },
   "dependencies": {
     "@fal-ai/client": "^1.10.1",

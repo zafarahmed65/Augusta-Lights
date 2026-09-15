@@ -12,3 +12,4 @@ confirmed from this machine — `commons.wikimedia.org` is unreachable here, onl
 `upload.wikimedia.org` file host is. Everything on Commons is freely licensed, but the
 specific terms (CC BY / CC BY-SA / public domain) and any required credit must be checked
 before this image appears in anything client-facing.
+| `house-02-car.jpg` | Unsplash, `photo-1568690408352-6f3c2999fd08` ("black sedan parked beside house"), 1600x1200 | California bungalow, front-facing. Sedan parked **overlapping the facade**, so vehicle removal must reconstruct the porch and wall behind it rather than just patch driveway. Hazy overcast light — matches the client's "less-than-perfect smartphone photography" difficulty. Unsplash License: free for commercial use, attribution not required. |
