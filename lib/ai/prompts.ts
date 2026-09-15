@@ -108,7 +108,15 @@ export function buildLightPrompt({ design, hasGuide, decorations = [], placement
     : `SMD C9 LED Christmas bulbs: faceted, strawberry-shaped bulbs on a black wire, clipped to the fascia at approximately ${design.spacingInches}-inch centres. Each bulb is a distinct, individually visible point of light with a small warm halo, a faint glow on the fascia board directly behind it, and no light spill further down the wall. The spacing must read as evenly measured, not random.`;
 
   const guide = hasGuide
-    ? `\nThe SECOND image is a placement guide: a transparent overlay marking the exact position and colour of every light. Place a real light at each marked point, matching the marked colour precisely. The guide's dots are markers, not artwork — render photorealistic fixtures at those coordinates and do not copy the flat dots themselves. Place lights ONLY where the guide marks them.`
+    ? `\nThe SECOND image is a placement guide. Each small hollow RING marks one light: the ring's centre is where that light goes, and the ring's colour is the colour that light must be.
+
+The rings are schematic annotation, NOT artwork. Never draw a ring, circle, outline or flat dot in your output. Replace each ring with a real, lit, photorealistic ${isOmni ? 'fixture' : 'C9 bulb'} and delete the ring itself.
+
+Every light is the same physical size and the same brightness as every other light, whatever its colour. A red bulb is exactly as large and as luminous as a white one — it glows red, it is not a small dark red dot. Coloured bulbs must cast the same halo and the same spill onto the surface behind them as the white bulbs do.
+
+${isOmni ? 'Mount each fixture into the eave/soffit above the marked point.' : 'Clip each bulb to the fascia board — the flat vertical trim just below the roof edge — so the string runs along the fascia, not up on the roof tiles. If a ring sits slightly high, move the bulb down onto the fascia.'}
+
+Place lights ONLY where the guide marks them, one per ring.`
     : `\nInstall along the front-facing roofline only — the fascia and eaves that face the camera. Do not run lights along roof edges that turn away from the camera, and do not outline windows, doors, or the garage.`;
 
   const decor = decorations.length

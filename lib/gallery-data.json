@@ -14,84 +14,13 @@
       },
       "variants": [
         {
-          "designId": "warm-white",
-          "label": "Warm White",
-          "product": "c9",
-          "file": "payne-warm-white.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "cool-white",
-          "label": "Cool White",
-          "product": "c9",
-          "file": "payne-cool-white.jpg",
-          "bulbCount": 0
-        },
-        {
           "designId": "candy-cane",
           "label": "Candy Cane",
           "product": "c9",
           "file": "payne-candy-cane.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "blue-white",
-          "label": "Blue / White",
-          "product": "c9",
-          "file": "payne-blue-white.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "red-green",
-          "label": "Red / Green",
-          "product": "c9",
-          "file": "payne-red-green.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "omni-warm",
-          "label": "Warm Architectural White",
-          "product": "omni",
-          "file": "payne-omni-warm.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "omni-cool",
-          "label": "Cool Architectural White",
-          "product": "omni",
-          "file": "payne-omni-cool.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "omni-rgb",
-          "label": "RGB / Rainbow",
-          "product": "omni",
-          "file": "payne-omni-rgb.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "omni-red-white",
-          "label": "Red / White",
-          "product": "omni",
-          "file": "payne-omni-red-white.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "omni-blue-white",
-          "label": "Blue / White",
-          "product": "omni",
-          "file": "payne-omni-blue-white.jpg",
-          "bulbCount": 0
-        },
-        {
-          "designId": "omni-red-green",
-          "label": "Red / Green",
-          "product": "omni",
-          "file": "payne-omni-red-green.jpg",
-          "bulbCount": 0
+          "bulbCount": 50
         }
-      ],
-      "sheet": "payne-sheet.jpg"
+      ]
     },
     {
       "slug": "alvarez",
@@ -199,5 +128,5 @@
     1024,
     1536
   ],
-  "builtAt": "2026-09-15T08:15:38.188Z"
+  "builtAt": "2026-09-15T08:25:37.757Z"
 }

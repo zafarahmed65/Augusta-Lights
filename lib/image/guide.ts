@@ -128,19 +128,29 @@ export async function renderGuide(opts: GuideOptions): Promise<Buffer> {
     })
     .join('');
 
+  /*
+   * Markers are hollow rings, never filled discs.
+   *
+   * The first version drew an opaque coloured disc wrapped in soft halos, which
+   * looks exactly like a lit bulb — so the model copied the marker straight into
+   * the output instead of rendering a fixture. Saturated colours were worst: reds
+   * came through as flat matte dots sitting on the roof tiles with no glow, while
+   * the warm-white ones (which read as light) were rendered properly and moved
+   * down onto the fascia. A ring cannot be mistaken for a light, so it is used as
+   * a position-and-colour reference and nothing else.
+   */
   const marks = bulbs
     .map(({ x, y, hex }) => {
       const cx = x.toFixed(1);
       const cy = y.toFixed(1);
-      // Omni fixtures throw light down the wall; show the intended cone direction.
+      // Omni fixtures wash downward; a short tick shows the intended direction.
       const wash = isOmni
-        ? `<rect x="${(x - core * 1.6).toFixed(1)}" y="${cy}" width="${(core * 3.2).toFixed(1)}" height="${(core * 14).toFixed(1)}" fill="${hex}" opacity="0.13"/>`
+        ? `<line x1="${cx}" y1="${(y + core).toFixed(1)}" x2="${cx}" y2="${(y + core * 7).toFixed(1)}" stroke="${hex}" stroke-width="1" opacity="0.4"/>`
         : '';
       return (
         wash +
-        `<circle cx="${cx}" cy="${cy}" r="${core * 3}" fill="${hex}" opacity="0.14"/>` +
-        `<circle cx="${cx}" cy="${cy}" r="${core * 1.7}" fill="${hex}" opacity="0.32"/>` +
-        `<circle cx="${cx}" cy="${cy}" r="${core}" fill="${hex}" opacity="1"/>`
+        `<circle cx="${cx}" cy="${cy}" r="${core * 1.5}" fill="none" stroke="${hex}" stroke-width="1.6" opacity="0.95"/>` +
+        `<circle cx="${cx}" cy="${cy}" r="0.9" fill="${hex}" opacity="0.9"/>`
       );
     })
     .join('');
