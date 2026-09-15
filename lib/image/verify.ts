@@ -26,13 +26,22 @@ const EDGE_FLOOR = 120;
 /** Edges may drift this many px (JPEG recompression, resampling) and still match. */
 const TOLERANCE_PX = 3;
 const DEFAULT_THRESHOLD = 88;
-/** Side of the analysis tile, in working pixels. */
+/**
+ * Tuning constants are expressed against a 1024px-wide reference and scaled to
+ * the actual working width by `scaleFor()`. Draft renders are compared at ~592px
+ * and finals at 2048px; fixed pixel counts silently change meaning between them,
+ * which let a fabricated window pass at draft resolution.
+ */
+const REFERENCE_WIDTH = 1024;
+/** Side of the analysis tile, at reference width. */
 const TILE = 64;
 /** A tile needs this many original edge pixels before it is judged at all. */
 const MIN_TILE_EDGES = 60;
 /**
  * ...or this many invented pixels, which catches structure conjured where there
- * was none. Set well above MIN_TILE_EDGES so residual noise cannot trip it.
+ * was none. Sweeping this gate from 24 to 220 changed nothing on a real photo —
+ * the binding constraint is tile size, not this threshold — so it stays at the
+ * value calibrated against the synthetic fixtures.
  */
 const MIN_TILE_INVENTED = 220;
 /**
@@ -102,6 +111,31 @@ function binarize(mag: Float32Array, mask: Uint8Array | null, cut: number): Uint
   return out;
 }
 
+interface TileConfig {
+  tile: number;
+  minTileEdges: number;
+  minTileInvented: number;
+}
+
+/** Test-only override so thresholds can be swept without editing constants. */
+let tuningOverride: Partial<{ minTileInvented: number; minComponent: number; tile: number }> = {};
+export function __setTuning(t: typeof tuningOverride) {
+  tuningOverride = t;
+}
+
+function scaleFor(width: number) {
+  const k = width / REFERENCE_WIDTH;
+  return {
+    // Never below the reference tile. Smaller tiles can land wholly inside a lit
+    // window, seeing only its glow and none of the frame that anchors it, which
+    // reported a correct render as a failure.
+    tile: tuningOverride.tile ?? Math.max(TILE, Math.round(TILE * k)),
+    minTileEdges: Math.max(12, Math.round(MIN_TILE_EDGES * k)),
+    minTileInvented: Math.max(8, Math.round((tuningOverride.minTileInvented ?? MIN_TILE_INVENTED) * k)),
+    minComponent: Math.max(40, Math.round((tuningOverride.minComponent ?? MIN_STRUCTURAL_COMPONENT) * k)),
+  };
+}
+
 interface TileVerdict {
   score: number;
   x: number;
@@ -121,12 +155,13 @@ function worstTile(
   edgesA: Uint8Array,
   width: number,
   height: number,
+  cfg: TileConfig,
 ): TileVerdict | null {
   let worst: TileVerdict | null = null;
-  for (let ty = 0; ty < height; ty += TILE) {
-    for (let tx = 0; tx < width; tx += TILE) {
-      const w = Math.min(TILE, width - tx);
-      const h = Math.min(TILE, height - ty);
+  for (let ty = 0; ty < height; ty += cfg.tile) {
+    for (let tx = 0; tx < width; tx += cfg.tile) {
+      const w = Math.min(cfg.tile, width - tx);
+      const h = Math.min(cfg.tile, height - ty);
       let m = 0, inv = 0, lo = 0, ref = 0;
       for (let y = ty; y < ty + h; y++) {
         for (let x = tx; x < tx + w; x++) {
@@ -139,7 +174,7 @@ function worstTile(
       }
       // Judge a tile only where the original had real structure, or where the
       // edit invented a lot of new structure out of nothing (e.g. into the sky).
-      if (ref < MIN_TILE_EDGES && inv < MIN_TILE_INVENTED) continue;
+      if (ref < cfg.minTileEdges && inv < cfg.minTileInvented) continue;
       const denom = m + inv + lo;
       const score = denom === 0 ? 100 : Math.round((m / denom) * 1000) / 10;
       if (!worst || score < worst.score) worst = { score, x: tx, y: ty, w, h };
@@ -233,7 +268,13 @@ async function skyMask(original: Buffer, width: number, height: number): Promise
  * architectural scale. Iterative flood fill — the recursive form blows the stack
  * on a full-width roofline contour.
  */
-function dropSmallComponents(src: Uint8Array, width: number, height: number, minSize: number): Uint8Array {
+function dropSmallComponents(
+  src: Uint8Array,
+  width: number,
+  height: number,
+  minSize: number,
+  sizesOut?: number[],
+): Uint8Array {
   const out = new Uint8Array(src);
   const seen = new Uint8Array(src.length);
   const stack: number[] = [];
@@ -262,6 +303,7 @@ function dropSmallComponents(src: Uint8Array, width: number, height: number, min
         }
       }
     }
+    sizesOut?.push(component.length);
     if (component.length < minSize) for (const i of component) out[i] = 0;
   }
   return out;
@@ -369,8 +411,10 @@ export async function verifyPreservation(
   // Only architectural-scale changes count. Without this the warm window glow —
   // an explicitly requested feature — reads as invented structure and sinks the
   // score on an otherwise perfect render.
-  const inventedBig = dropSmallComponents(invented, width, height, MIN_STRUCTURAL_COMPONENT);
-  const lostBig = dropSmallComponents(lost, width, height, MIN_STRUCTURAL_COMPONENT);
+  const cfg = scaleFor(width);
+  const inventedComponents: number[] = [];
+  const inventedBig = dropSmallComponents(invented, width, height, cfg.minComponent, inventedComponents);
+  const lostBig = dropSmallComponents(lost, width, height, cfg.minComponent);
 
   const m = countBits(matched);
   const inv = countBits(inventedBig);
@@ -378,7 +422,7 @@ export async function verifyPreservation(
   const edgeIoU = m + inv + lo === 0 ? 1 : m / (m + inv + lo);
   const globalScore = Math.round(edgeIoU * 1000) / 10;
 
-  const worst = worstTile(matched, inventedBig, lostBig, edgesA, width, height);
+  const worst = worstTile(matched, inventedBig, lostBig, edgesA, width, height, cfg);
   const localScore = worst?.score ?? 100;
 
   // Headline number is the global agreement, but a single ruined region fails
@@ -402,6 +446,13 @@ export async function verifyPreservation(
       worstRegion: worst ? { x: worst.x, y: worst.y, w: worst.w, h: worst.h } : null,
       workWidth: width,
       workHeight: height,
+      inventedComponents,
     },
   };
+}
+
+/** Diagnostic: sizes of the invented edge components, before size filtering. */
+export async function inventedComponentSizes(original: Buffer, edited: Buffer): Promise<number[]> {
+  const r = await verifyPreservation(original, edited);
+  return r.detail.inventedComponents ?? [];
 }

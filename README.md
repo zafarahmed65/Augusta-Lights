@@ -83,6 +83,27 @@ Current results on the synthetic fixture:
 Note the last two rows: a global average barely moves when a window is fabricated, which is
 why the check fails on the *worst region* rather than the mean.
 
+### Known limitation
+
+Those synthetic figures are flattering. The fixtures are flat vector art with no texture and
+no lit windows, so any invented edge is unambiguous. On a real photograph the check is
+weaker, and it is worth stating plainly:
+
+- **It reliably catches large fabrications** — an invented roof section, a materially changed
+  roofline — and it reliably passes correct renders. That covers the failure the client
+  actually reported.
+- **At draft resolution (~592px) it does not reliably catch a small fabricated window.** Warm
+  interior glow is itself a cluster of new edges inside a preserved opening, and at that scale
+  it is not separable from a small invented one. Sweeping every threshold confirmed this:
+  small tiles report correct renders as failures, large tiles score a sabotaged render
+  (79.1) the same as a genuine one (79.0). Component size does not separate them either — the
+  genuine master's largest invented component was *larger* than the sabotaged one's.
+
+So the score is a review aid, not a proof. Treat a pass as "no gross structural change
+detected" rather than "architecture verified". Re-testing at 2K final resolution, where there
+is more edge evidence per feature, is the open question; `scripts/rescore.ts` re-runs the
+check against renders already on disk so this costs nothing to investigate.
+
 ## Cost control
 
 `lib/ai/fal.ts` is the only module that may import the fal client, so `FAL_KEY` lives in one

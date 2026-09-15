@@ -77,5 +77,7 @@ export interface PreservationReport {
     worstRegion: { x: number; y: number; w: number; h: number } | null;
     workWidth: number;
     workHeight: number;
+    /** Sizes of every invented edge component, before size filtering. Diagnostic. */
+    inventedComponents?: number[];
   };
 }
